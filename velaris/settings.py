@@ -38,6 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "usuarios",
+    "pacientes",
+    "turnos",
+    "ventas",
+    "stock",
     "crispy_forms",
     "crispy_bootstrap5",
 ]

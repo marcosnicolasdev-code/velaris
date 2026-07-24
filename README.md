@@ -96,6 +96,9 @@ Próximas apps a incorporar: `historia_clinica` (evoluciones y recetas) y `repor
 
 El modelo relacional completo está en [`docs/schema.sql`](docs/schema.sql), con las 16 tablas del sistema, sus claves primarias, claves foráneas y restricciones.
 
+Nomenclatura: los documentos de diseño (DER, modelo relacional y diccionario) utilizan camelCase. La implementación en Django utiliza snake_case, siguiendo la convención estándar de Python (PEP 8). La correspondencia entre ambos es directa: 
+de nombrePaciente a nombre_paciente.
+
 Decisiones de diseño principales:
 
 - **Claves primarias autoincrementales** en las entidades internas; claves naturales (`dni`, `codigoProducto`, `idTratamiento`) donde el identificador existe fuera del sistema.

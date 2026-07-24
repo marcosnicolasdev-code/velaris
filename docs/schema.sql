@@ -1,5 +1,7 @@
 -- Modelo relacional - VELARIS --
 
+-- Nomenclatura: camelCase en documentación; snake_case en la implementación Django (PEP 8).
+
 -- Tablas independientes --
 
 CREATE TABLE usuario ( 

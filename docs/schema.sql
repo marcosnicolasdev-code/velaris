@@ -58,7 +58,7 @@ CREATE TABLE turno (
     idTratamiento           VARCHAR(20) NOT NULL,
     dni                     VARCHAR(20) NOT NULL,
     estado                  VARCHAR(20) NOT NULL
-                            CHECK (estado IN ('disponible', 'asignado', 'reservado', 'finalizado', 'ausente')), 
+                            CHECK (estado IN ('asignado', 'reservado', 'finalizado', 'ausente', 'cancelado')), 
     fechaAsistencia           DATETIME NOT NULL,
     FOREIGN KEY (idTratamiento) REFERENCES tratamiento(idTratamiento),
     FOREIGN KEY (dni) REFERENCES paciente(dni)

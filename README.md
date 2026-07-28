@@ -80,9 +80,8 @@ velaris/
 ├── velaris/          # Configuración del proyecto (settings, urls)
 ├── usuarios/         # Autenticación, roles y permisos
 ├── pacientes/        # Alta, búsqueda y ficha del paciente
-├── turnos/           # Agendas, tratamientos y sesiones
-├── ventas/           # Facturación, caja y movimientos
-├── stock/            # Productos y medicamentos
+├── tratamientos/     # Agendas, tratamientos y sesiones
+├── productos/        # Productos, ventas y medicamentos
 ├── docs/             # Documentación técnica
 │   └── schema.sql    # Modelo relacional del sistema
 ├── manage.py         # Utilidad de administración de Django

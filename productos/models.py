@@ -42,7 +42,7 @@ class DetalleVenta (models.Model):
     precio_unitario = models.IntegerField()
     
     
-#class Archivo(models.Model):
-#    evaluacion = models.ForeignKey(
-#    "pacientes.EvaluacionMedica", on_delete=models.CASCADE, related_name="archivos")
-#    archivo_adjunto = models.FileField(upload_to="evaluaciones/") 
+class Archivo(models.Model):
+    evaluacion = models.ForeignKey(
+    "pacientes.EvaluacionMedica", on_delete=models.CASCADE, related_name="archivos")
+    archivo_adjunto = models.FileField(upload_to="evaluaciones/") 

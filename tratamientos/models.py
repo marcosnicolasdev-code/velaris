@@ -4,12 +4,14 @@ class Tratamiento(models.Model):
  duracion_tratamiento = models.DurationField() 
  sesion_tratamiento = models.SmallIntegerField(default=1)
  def __str__(self): return self.id_tratamiento
+
 class PlanPago(models.Model): 
   id_plan = models.AutoField(primary_key=True)
   dni = models.ForeignKey("pacientes.Paciente", on_delete=models.PROTECT)
   valor_sesion = models.IntegerField()
   fecha_inicio_tratamiento = models.DateField()
   def __str__(self): return f"Plan {self.id_plan} - {self.dni}" 
+
 class Sesion(models.Model): 
   ESTADOS_PAGO = [("pendiente", "Pendiente"), ("abonado", "Abonado")]
   id_sesion = models.IntegerField(primary_key=True)
@@ -18,6 +20,7 @@ class Sesion(models.Model):
   duracion_sesion = models.DurationField() 
   numero_sesion = models.SmallIntegerField()
   estado_pago = models.CharField(max_length=20, choices=ESTADOS_PAGO, default="pendiente")
+
 class Receta(models.Model):
   numero_receta = models.IntegerField(primary_key=True)
   dni = models.ForeignKey("pacientes.Paciente", on_delete=models.PROTECT)

@@ -123,5 +123,9 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
+# redirecciona al usuario una vez se logea
+LOGIN_REDIRECT_URL= 'inicio'
+LOGOUT_REDIRECT_URL= 'login'
+
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"

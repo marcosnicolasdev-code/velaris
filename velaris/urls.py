@@ -19,4 +19,12 @@ from django.urls import path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    #login por defecto de django
+    path('login/', auth_views.LoginView.as_view(), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+
+    path('usuarios/', include('usuarios.urls')),
+    path('pacientes', include('pacientes.urls')),
+    path('productos/', include('productos.urls')),
+    path('tratamientos/', include('tratamientos.urls')),
 ]

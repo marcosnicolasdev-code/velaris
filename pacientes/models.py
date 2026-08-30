@@ -28,6 +28,7 @@ class Turno(models.Model):
         ASIGNADO = "asignado", "Asignado"
         FINALIZADO = "finalizado", "Finalizado"
         AUSENTE = "ausente", "Ausente"
+        CANCELADO = "cancelado", "Cancelado"
 
     paciente = models.ForeignKey(Paciente, on_delete=models.PROTECT)
     tratamiento = models.ForeignKey(

@@ -1,0 +1,11 @@
+:root {
+  --bs-primary: #1E6E57;
+  --bs-secondary: #59635C;
+  --bs-body-bg: #FBFAF6;
+  --bs-body-color: #17201B;
+  --bs-body-font-family: system-ui, sans-serif;
+}
+
+.navbar {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
+}

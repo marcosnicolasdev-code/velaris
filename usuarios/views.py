@@ -7,3 +7,5 @@ from django.shortcuts import render
 @login_required #solicita inciar sesion para avanzar en el sistema
 def inicio(request):
     return render(request, 'inicio.html')
+
+

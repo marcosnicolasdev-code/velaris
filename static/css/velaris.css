@@ -1,11 +1,28 @@
-:root {
-  --bs-primary: #1E6E57;
-  --bs-secondary: #59635C;
-  --bs-body-bg: #FBFAF6;
-  --bs-body-color: #17201B;
-  --bs-body-font-family: system-ui, sans-serif;
+/* Fondo general y fuente */
+body {
+    background-color: #e60f0f;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.navbar {
-  box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
+/* Tarjeta contenedora de la interfaz */
+.tarjeta-login {
+    border: none;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+/* Botón con el color principal del sistema */
+.btn-velaris {
+    background-color: #0d6efd;
+    color: white;
+    border-radius: 8px;
+    font-weight: 600;
+    padding: 10px;
+    transition: all 0.2s ease;
+}
+
+.btn-velaris:hover {
+    background-color: #0b5ed7;
+    color: white;
 }

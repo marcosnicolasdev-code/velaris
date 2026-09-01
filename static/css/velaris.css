@@ -1,20 +1,27 @@
 /* Fondo general y fuente */
 body {
-    background-color: #e60f0f;
+    background-color: #F8EBD4;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.header-bar{
+    background-color: #002B66;
+    color: white;
 }
 
 /* Tarjeta contenedora de la interfaz */
 .tarjeta-login {
-    border: none;
+    border: 3px solid #002B66;
     border-radius: 16px;
     background: #ffffff;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    padding: 100px 20px;
+    color: #002B66;
 }
 
 /* Botón con el color principal del sistema */
 .btn-velaris {
-    background-color: #0d6efd;
+    background-color: #002B66;
     color: white;
     border-radius: 8px;
     font-weight: 600;
@@ -23,6 +30,7 @@ body {
 }
 
 .btn-velaris:hover {
-    background-color: #0b5ed7;
+    background-color: #002B66;
     color: white;
 }
+

@@ -1,13 +1,17 @@
 {% extends 'base.html' %}
-
+{% load static %}
 {% block titulo %}Iniciar Sesion - Velaris{% endblock %}
 
 {% block contenido %}
-<div class="row justify-content-center my-5">
+<div class="row justify-content-end center my-5">
+    <div class="col-md-6 col-lg-5 d-none d-md-block">
+        <div class="d-flex justify-content-center align-items-center bg-light border rounded position-relative" style="height: 400px; background-color: #e9ecef !important;">
+            <img src="{% static 'css/img/logo-velaris.png' %}" alt="Imagen Login" class="img-fluid position-relative z-1" style="max-height: 250px;">        </div>
+    </div>
     <div class="col-md-6 col-lg-4">
         <div class="card shadow-sm tarjeta-login">
             <div class="card-body p-4">
-                <h3 class="card-title text-center mb-4">Iniciar Sesión</h3>
+                <h3 class="card-title text-center mb-4">¡Bienvenido!</h3>
 
                 {% if form.errors %}
                 <div class="alert alert-danger" role="alert">
@@ -20,15 +24,26 @@
 
                     <div class="mb-3">
                         <label for="id_username" class="form-label">Usuario</label>
+                        <div class="input-group">
+                         <span class="input-group-text">👤</span> <!-- Emoji o logo -->
                         <input type="text" name="username" id="id_username" autofocus maxlength="254" class="form-control" required>
+                        </div>
                     </div>
 
                     <div class="mb-3">
                         <label for="id_password" class="form-label">Contraseña</label>
-                        <input type="password" name="password" id="id_password" class="form-control" required>
+                          <div class="input-group">
+                            <span class="input-group-text">🔒</span> <!-- Emoji o logo -->
+                             <input type="password" name="password" class="form-control" id="id_password" placeholder="Tu contraseña">
+                        </div>
                     </div>
-
                     <button type="submit" class="btn btn-primary w-100 mt-3">Ingresar</button>
+                    <div class="text-center mt-3">
+                        <a href="#" class="text-decoration-none text-muted small">
+                        ¿Has olvidado nombre de usuario y/o contraseña?
+                        </a>
+                        <a href="#" class="text-decoration-none small">Registrar nuevo usuario</a>
+                    </div>
                     <input type="hidden" name="next" value="{{ next }}">
                 </form>
             </div>

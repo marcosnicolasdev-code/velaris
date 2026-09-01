@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block titulo %}Cajas — Velaris{% endblock %}
+
+{% block contenido %}
+  <h1>Cajas</h1>
+  <a href="{% url 'caja_crear' %}" class="btn btn-primary mb-3">Nueva caja</a>
+
+  <table class="table table-striped">
+    <thead>
+      <tr><th>#</th><th>Total</th><th>Apertura</th><th>Cierre</th><th></th></tr>
+    </thead>
+    <tbody>  
+      {% for caja in cajas %} <!--Revisa la lista de cajas y arma una por fila por caja-->
+        <tr>
+          <td>{{ caja.id }}</td>
+          <td>${{ caja.total_caja }}</td>
+          <td>{{ caja.apertura_caja }}</td>
+          <td>{{ caja.cierre_caja|default:"— abierta —" }}</td> <!--El texto se muestra si el cierre de caja aun no se hizo-->
+          <td>
+            <a href="{% url 'caja_editar' caja.id %}" class="btn btn-sm btn-secondary">Editar</a>
+            <a href="{% url 'caja_borrar' caja.id %}" class="btn btn-sm btn-danger">Borrar</a>
+          </td>
+        </tr>
+      {% empty %} <!--Si no hay cajas se muestra vacio-->
+        <tr><td colspan="5">No hay cajas registradas.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

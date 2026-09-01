@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block titulo %}Borrar caja — Velaris{% endblock %}
+
+{% block contenido %}
+  <h1>¿Esta seguro de borrar esta caja?</h1>
+  <p>Caja #{{ caja.id }} — total ${{ caja.total_caja }}</p>
+
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Sí, borrar</button>
+    <a href="{% url 'caja_lista' %}" class="btn btn-secondary">Cancelar</a>
+  </form>
+{% endblock %}

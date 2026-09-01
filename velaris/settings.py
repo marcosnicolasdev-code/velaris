@@ -123,6 +123,8 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
+# ruta si aun no estas logeado
+LOGIN_URL = "login"
 # redirecciona al usuario una vez se logea
 LOGIN_REDIRECT_URL= 'inicio'
 LOGOUT_REDIRECT_URL= 'login'

@@ -1,6 +1,5 @@
 from django.contrib import admin
 from .models import Tratamiento, PlanPago ,Sesion, Receta
-admin.site.register(Tratamiento)
 # Register your models here.
 admin.site.register(Tratamiento)
 admin.site.register(PlanPago)

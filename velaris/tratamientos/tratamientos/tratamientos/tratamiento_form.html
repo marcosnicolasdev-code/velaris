@@ -1,0 +1,7 @@
+{% extends "base.html" %} {% block titulo %}Tratamiento - Velaris{% endblock %} {% block contenido %} 
+<h1>Datos del tratamiento</h1>
+<form method="post"> {% csrf_token %} {{ form.as_p }} 
+<button type="submit" class="btn btn-primary">Guardar</button> 
+  <a href="{% url 'tratamiento_lista' %}" class="btn btn-secondary">Cancelar</a>
+</form> 
+{% endblock %}

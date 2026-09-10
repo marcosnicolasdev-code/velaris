@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Lista de Profesionales</h1>
+  
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Filtrar</button>
+    <a href="{% url 'profesional_lista' %}" class="btn btn-secondary">Limpiar</a>
+  </form>
+  <ul>
+    {% for profesional in profesionales %}
+      <li>{{ profesional.usuario.username }} - {{ profesional.matricula }} - {{ profesional.especialidad }}</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

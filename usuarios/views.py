@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render , redirect , get_object_or_404
-from .models import Caja
-from .forms import CajaForm
+from .models import Caja, Profesional
+from .forms import CajaForm, ProfesionalForm
 
 # Create your views here.
 
@@ -53,4 +53,45 @@ def caja_borrar(request, id):
         return redirect("caja_lista")
     return render(request, "usuarios/caja_confirmar.html", {"caja": caja})
 
+#CRUD Profesional
+
+#READ - listar todos los profesionales
+@login_required
+def profesional_lista(request):
+    profesionales = Profesional.objects.all()
+    return render(request, "usuarios/profesional_lista.html", {"profesionales": profesionales})
+
+#CREATE - crear un profesional nuevo
+@login_required
+def profesional_crear(request):
+    if request.method == "POST":
+        form = ProfesionalForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("profesional_lista")
+    else:
+        form = ProfesionalForm()
+    return render(request, "usuarios/profesional_form.html", {"form": form})
+
+#UPDATE - editar un profesional existente
+@login_required
+def profesional_editar(request, id):
+    profesional = get_object_or_404(Profesional, id=id)
+    if request.method == "POST":
+        form = ProfesionalForm(request.POST, instance=profesional)
+        if form.is_valid():
+            form.save()
+            return redirect("profesional_lista")
+    else:
+        form = ProfesionalForm(instance=profesional)
+    return render(request, "usuarios/profesional_form.html", {"form": form})
+
+#DELETE - borrar un profesional
+@login_required
+def profesional_borrar(request, id):
+    profesional = get_object_or_404(Profesional, id=id)
+    if request.method == "POST":
+        profesional.delete()
+        return redirect("profesional_lista")
+    return render(request, "usuarios/profesional_confirmar.html", {"profesional": profesional})
 

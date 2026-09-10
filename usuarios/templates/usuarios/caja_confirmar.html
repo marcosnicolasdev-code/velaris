@@ -8,7 +8,7 @@
 
   <form method="post">
     {% csrf_token %}
-    <button type="submit" class="btn btn-danger">Sí, borrar</button>
+    <button type="submit" class="btn btn-danger">Eliminar</button>
     <a href="{% url 'caja_lista' %}" class="btn btn-secondary">Cancelar</a>
   </form>
 {% endblock %}

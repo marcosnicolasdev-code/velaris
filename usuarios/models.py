@@ -12,8 +12,8 @@ class Profesional (models.Model):
 class Caja (models.Model):
     usuario = models.ForeignKey(User, on_delete=models.PROTECT)
     total_caja = models.IntegerField(default=0)
-    apertura_caja = models.DateField(auto_now_add=True)
-    cierre_caja = models.DateField(null=True, blank=True)
+    apertura_caja = models.DateTimeField(auto_now_add=True)
+    cierre_caja = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"Caja #{self.id}"
@@ -24,7 +24,7 @@ class MovimientoCaja (models.Model):
     caja = models.ForeignKey(Caja, on_delete=models.PROTECT, related_name="movimientos")
     tipo_movimiento = models.CharField(max_length=20, choices=TIPOS)
     importe_movimiento = models.IntegerField()
-    fecha_movimiento = models.DateField(auto_now_add=True)
+    fecha_movimiento = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.tipo_movimiento.upper()} - ${self.importe_movimiento} (Caja #{self.caja.id})"

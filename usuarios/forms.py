@@ -1,5 +1,5 @@
 from django import forms
-from .models import Caja, Profesional
+from .models import Caja, Profesional, MovimientoCaja
 
 
 class CajaForm(forms.ModelForm):
@@ -12,3 +12,7 @@ class ProfesionalForm(forms.ModelForm):
         model = Profesional
         fields = ["usuario", "matricula", "especialidad"]
 
+class MovimientoCajaForm(forms.ModelForm):
+    class Meta:
+        model = MovimientoCaja
+        fields = ["tipo_movimiento", "importe_movimiento"] # La caja y la fecha se omiten porque el sistema las asigna de forma automática.

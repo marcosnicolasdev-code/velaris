@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render , redirect , get_object_or_404
-from .models import Caja, Profesional
-from .forms import CajaForm, ProfesionalForm
+from .models import Caja, Profesional, MovimientoCaja
+from .forms import CajaForm, ProfesionalForm, MovimientoCajaForm
 
 # Create your views here.
 
@@ -30,6 +30,25 @@ def caja_crear(request):
     else:
         form = CajaForm() # Entro en el if y reconocio que no es POST, por descarte es GET
     return render (request, "usuarios/caja_form.html", {"form": form})
+
+
+# Registrar un movimiento de caja (ingreso o egreso)
+@login_required
+def registrar_movimiento(request):
+    # Busca la caja del usuario actualmente logueado (request.user)
+    caja = get_object_or_404(Caja, usuario=request.user)
+
+    if request.method == "POST":
+        form = MovimientoCajaForm(request.POST)
+        if form.is_valid():
+            movimiento = form.save(commit=False)
+            movimiento.caja = caja
+            movimiento.save()
+            return redirect("caja_lista")
+    else:
+            form = MovimientoCajaForm()
+
+    return render(request, "usuarios/movimiento_form.html", {"form": form})
 
 #UPDATE - editar una caja existente
 @login_required

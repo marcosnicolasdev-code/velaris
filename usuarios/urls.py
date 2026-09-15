@@ -8,6 +8,10 @@ urlpatterns = [
     path("cajas/<int:id>/editar/", views.caja_editar, name="caja_editar"),
     path("cajas/<int:id>/borrar/", views.caja_borrar, name="caja_borrar"),
 
+#URL de movimientos de caja
+    path("cajas/movimiento/nuevo/", views.registrar_movimiento, name="registrar_movimiento"),
+    path("cajas/movimiento/", views.caja_lista, name="caja_movimientos"),
+
 #URL de profesionales
     path("profesionales/", views.profesional_lista, name="profesional_lista"),
     path("profesionales/nuevo", views.profesional_crear, name="profesional_crear"),

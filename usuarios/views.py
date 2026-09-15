@@ -2,6 +2,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render , redirect , get_object_or_404
 from .models import Caja, Profesional, MovimientoCaja
 from .forms import CajaForm, ProfesionalForm, MovimientoCajaForm
+from django.utils import timezone
+from django.db.models import Sum
 
 # Create your views here.
 
@@ -19,36 +21,7 @@ def caja_lista(request):
     cajas = Caja.objects.all() #Trae todas las cajas (ORM)
     return render (request, "usuarios/caja_lista.html", {"cajas": cajas})
 
-#CREATE - crea una caja nueva
-@login_required
-def caja_crear(request):
-    if request.method == "POST": # Pregunta si es POST 
-        form = CajaForm (request.POST) # Lee los datos que se cargaron
-        if form.is_valid():
-            form.save()
-            return redirect("caja_lista")
-    else:
-        form = CajaForm() # Entro en el if y reconocio que no es POST, por descarte es GET
-    return render (request, "usuarios/caja_form.html", {"form": form})
-
-
-# Registrar un movimiento de caja (ingreso o egreso)
-@login_required
-def registrar_movimiento(request):
-    # Busca la caja del usuario actualmente logueado (request.user)
-    caja = get_object_or_404(Caja, usuario=request.user)
-
-    if request.method == "POST":
-        form = MovimientoCajaForm(request.POST)
-        if form.is_valid():
-            movimiento = form.save(commit=False)
-            movimiento.caja = caja
-            movimiento.save()
-            return redirect("caja_lista")
-    else:
-            form = MovimientoCajaForm()
-
-    return render(request, "usuarios/movimiento_form.html", {"form": form})
+#CREATE - crear una caja nueva no tiene formulario para evitar duplicados de cajas
 
 #UPDATE - editar una caja existente
 @login_required
@@ -71,6 +44,54 @@ def caja_borrar(request, id):
         caja.delete()
         return redirect("caja_lista")
     return render(request, "usuarios/caja_confirmar.html", {"caja": caja})
+
+#CRUD Movimiento de Caja
+
+# CREATE - Registrar un movimiento de caja (ingreso o egreso)
+@login_required
+def registrar_movimiento(request):
+    # Busca la caja del usuario actualmente logueado (request.user)
+    caja = get_object_or_404(Caja, usuario=request.user)
+
+    if request.method == "POST":
+        form = MovimientoCajaForm(request.POST)
+        if form.is_valid():
+            movimiento = form.save(commit=False)
+            movimiento.caja = caja
+            movimiento.save()
+            return redirect("caja_movimientos")
+    else:
+        form = MovimientoCajaForm()
+
+    return render(request, "usuarios/movimiento_form.html", {"form": form})
+
+# READ - Listar todos los movimientos de caja
+
+@login_required
+def caja_movimientos(request):
+    caja = get_object_or_404(Caja, usuario=request.user)
+    hoy = timezone.now().date()
+
+    # Solo los movimientos de hoy de esta caja
+    movimientos = MovimientoCaja.objects.filter(
+        caja=caja, 
+        fecha_movimiento__date=hoy
+    ).order_by("-fecha_movimiento") # El signo - indica que se ordena de forma descendente, se mostrara el ultimo movimiento primero
+
+    # Totales del dia
+    ingresos = movimientos.filter(tipo_movimiento="ingreso").aggregate( # aggregate suma todos los movimientos de ese tipo
+        total=Sum("importe_movimiento"))["total"] or 0
+    egresos = movimientos.filter(tipo_movimiento="egreso").aggregate(
+        total=Sum("importe_movimiento"))["total"] or 0
+    saldo = ingresos - egresos
+
+    return render(request, "usuarios/caja_movimientos.html", {
+        "caja": caja,
+        "movimientos": movimientos,
+        "ingresos": ingresos,
+        "egresos": egresos,
+        "saldo": saldo,
+    })
 
 #CRUD Profesional
 

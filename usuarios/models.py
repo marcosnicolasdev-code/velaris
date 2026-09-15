@@ -10,7 +10,7 @@ class Profesional (models.Model):
         return f"{self.usuario.get_full_name()} - {self.especialidad}"
 
 class Caja (models.Model):
-    usuario = models.ForeignKey(User, on_delete=models.PROTECT)
+    usuario = models.OneToOneField(User, on_delete=models.PROTECT)
     total_caja = models.IntegerField(default=0)
     apertura_caja = models.DateTimeField(auto_now_add=True)
     cierre_caja = models.DateTimeField(null=True, blank=True)

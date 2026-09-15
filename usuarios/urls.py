@@ -10,6 +10,7 @@ urlpatterns = [
 #URL de movimientos de caja
     path("cajas/movimiento/nuevo/", views.registrar_movimiento, name="registrar_movimiento"),
     path("cajas/movimiento/", views.caja_movimientos, name="caja_movimientos"),
+    path("cajas/<int:id>/movimientos/", views.caja_movimientos, name="caja_detalle"),
 
 #URL de profesionales
     path("profesionales/", views.profesional_lista, name="profesional_lista"),

@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models import Sum
 
 class Profesional (models.Model):
     usuario = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -17,6 +18,14 @@ class Caja (models.Model):
 
     def __str__(self):
         return f"Caja #{self.id}"
+
+    @property
+    def saldo(self):
+        ingresos = self.movimientos.filter(tipo_movimiento="ingreso").aggregate(
+            total=Sum("importe_movimiento"))["total"] or 0
+        egresos = self.movimientos.filter(tipo_movimiento="egreso").aggregate(
+            total=Sum("importe_movimiento"))["total"] or 0
+        return ingresos - egresos
 
 class MovimientoCaja (models.Model):
     TIPOS = [("ingreso", "Ingreso"), ("egreso", "Egreso")]

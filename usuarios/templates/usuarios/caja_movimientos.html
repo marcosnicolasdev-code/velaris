@@ -3,10 +3,10 @@
 {% block titulo %}Movimientos del día — Velaris{% endblock %}
 
 {% block contenido %}
-  <h1>Movimientos de hoy - Caja #{{ caja.id }}</h1>
-
-  <a href="{% url 'registrar_movimiento' %}" class="btn btn-primary mb-3">Registrar nuevo movimiento</a>
-  
+  <h1>Movimientos de hoy {% now "d/m/Y" %} - Caja #{{ user.caja.usuario.get_full_name | default:user.caja.usuario.username }}</h1>
+  {% if not es_propia %} # Se restringe la opcion de registrar movimientos si no es el dueño de la caja el la mira
+    <a href="{% url 'registrar_movimiento' %}" class="btn btn-primary mb-3">Registrar nuevo movimiento</a>
+  {% endif %}
   <!-- Resumen del dia -->
   <div class="row mb-4">
     <div class="col-md-4">
@@ -39,9 +39,9 @@
   <table class="table table-striped">
     <thead>
       <tr>
-        <th>Tipo</th>
+        <th>Hora</th>
+        <th>Tipo de movimiento</th>
         <th>Importe</th>
-        <th>Fecha y hora</th>
       </tr>
     </thead>
     <tbody>

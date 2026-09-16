@@ -65,13 +65,19 @@ def registrar_movimiento(request):
 
     return render(request, "usuarios/movimiento_form.html", {"form": form})
 
-# READ - Listar todos los movimientos de caja
+# READ - Listar todos los movimientos de caja del usuario
 
 @login_required
-def caja_movimientos(request):
-    caja = get_object_or_404(Caja, usuario=request.user)
-    hoy = timezone.now().date()
+def caja_movimientos(request, id=None):
+    # Si viene un id, es esa caja; si no, la del usuario logueado
+    if id:
+        caja = get_object_or_404(Caja, id=id)
+        es_propia = (caja.usuario == request.user)
+    else:
+        caja = get_object_or_404(Caja, usuario=request.user)
+        es_propia = True
 
+    hoy = timezone.now().date()
     # Solo los movimientos de hoy de esta caja
     movimientos = MovimientoCaja.objects.filter(
         caja=caja, 
@@ -86,6 +92,35 @@ def caja_movimientos(request):
     saldo = ingresos - egresos
 
     return render(request, "usuarios/caja_movimientos.html", {
+        "caja": caja,
+        "movimientos": movimientos,
+        "ingresos": ingresos,
+        "egresos": egresos,
+        "saldo": saldo,
+        "es_propia": es_propia,
+    })
+
+
+# READ - Listar todos los movimientos de caja para visualizacion de CEO/ADMINISTRADOR
+
+@login_required
+def caja_detalle(request, id):
+    caja = get_object_or_404(Caja, id=id)
+    hoy = timezone.now().date()
+
+    movimientos = MovimientoCaja.objects.filter(
+        caja=caja,
+        fecha_movimiento__date=hoy
+    ).order_by("-fecha_movimiento")
+
+    # Totales de la caja
+    ingresos = movimientos.filter(tipo_movimiento="ingreso").aggregate(
+        total=Sum("importe_movimiento"))["total"] or 0
+    egresos = movimientos.filter(tipo_movimiento="egreso").aggregate(
+        total=Sum("importe_movimiento"))["total"] or 0
+    saldo = ingresos - egresos
+
+    return render(request, "usuarios/caja_detalle.html", {
         "caja": caja,
         "movimientos": movimientos,
         "ingresos": ingresos,

@@ -1,0 +1,6 @@
+{% extends "base.html" %} {% block titulo %}Borrar - Velaris{% endblock %} {% block contenido %}
+ <h1>Borrar este tratamiento?</h1> 
+ <p>{{ tratamiento.id_tratamiento }} - {{ tratamiento.duracion_tratamiento }}</p>
+<form method="post"> {% csrf_token %} <button type="submit" class="btn btn-danger">Si, borrar</button> 
+    <a href="{% url 'tratamiento_lista' %}" class="btn btn-secondary">Cancelar</a> 
+</form> {% endblock %}

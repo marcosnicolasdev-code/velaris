@@ -29,9 +29,12 @@ class Caja (models.Model):
 
 class MovimientoCaja (models.Model):
     TIPOS = [("ingreso", "Ingreso"), ("egreso", "Egreso")]
+    CATEGORIAS = [("venta", "Venta"), ("pago_proveedor", "Pago a Proveedor"), ("pago_servicio", "Pago de Servicio"), ("pago_impuesto", "Pago de impuesto"), ("otro", "Otro")]
 
     caja = models.ForeignKey(Caja, on_delete=models.PROTECT, related_name="movimientos")
     tipo_movimiento = models.CharField(max_length=20, choices=TIPOS)
+    categoria_movimiento = models.CharField(max_length=20, choices=CATEGORIAS, default="otro")
+    descripcion_movimiento = models.CharField(max_length=200, blank=True)
     importe_movimiento = models.IntegerField()
     fecha_movimiento = models.DateTimeField(auto_now_add=True)
 

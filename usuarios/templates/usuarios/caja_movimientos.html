@@ -41,6 +41,8 @@
       <tr>
         <th>Hora</th>
         <th>Tipo de movimiento</th>
+        <th>Categoría</th>
+        <th>Descripción</th>
         <th>Importe</th>
       </tr>
     </thead>
@@ -49,11 +51,13 @@
         <tr>
           <td>{{ m.fecha_movimiento|date:"H:i" }}</td> <!-- Muestra solo la hora y minutos -->
           <td>{{ m.get_tipo_movimiento_display }}</td>
+          <td>{{ m.get_categoria_movimiento_display }}</td>
+          <td>{{ m.descripcion_movimiento }}</td>
           <td>${{ m.importe_movimiento }}</td>
         </tr>
       {% empty %}
         <tr>
-          <td colspan="3">No hay movimientos registrados hoy.</td>
+          <td colspan="5">No hay movimientos registrados hoy.</td>
         </tr>
       {% endfor %}
     </tbody>

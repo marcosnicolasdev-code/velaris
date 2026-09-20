@@ -6,8 +6,8 @@ from django.utils import timezone
 import unicodedata
 import re
 
-from .models import Paciente, Evolucion
-from .forms import PacienteForm
+from .models import Paciente, Evolucion, Turno
+from .forms import PacienteForm, TurnoForm
 from usuarios.models import Profesional
 
 # READ  (El Listado y Buscador)
@@ -290,3 +290,52 @@ def evolucion_profesional_crear(request, dni):
         else "pacientes/evolucion_profesional_form.html",
         {"paciente": paciente},
     )
+
+#CRUD TURNOS
+
+#CREATE
+@login_required
+def turno_crear(request, dni):
+    paciente = get_object_or_404(Paciente, dni=dni)
+    if request.method == "POST":
+        form = TurnoForm(request.POST)
+        if form.is_valid():
+            turno = form.save(commit=False)
+            turno.paciente = paciente
+            turno.save()
+            return redirect("paciente_detalle", dni=paciente.dni)
+    else:
+        form = TurnoForm()
+    return render(request, "pacientes/turno_form.html", {"paciente": paciente, "form": form})
+
+
+#READ
+@login_required
+def turno_lista(request, dni):
+    paciente = get_object_or_404(Paciente, dni=dni)
+    turnos = Turno.objects.filter(paciente=paciente)
+    return render(request, "pacientes/turno_lista.html", {"paciente": paciente, "turnos": turnos})
+
+#UPDATE
+@login_required
+def turno_editar(request, dni, turno_id):
+    paciente = get_object_or_404(Paciente, dni=dni)
+    turno = get_object_or_404(Turno, id=turno_id, paciente=paciente)
+    if request.method == "POST":
+        form = TurnoForm(request.POST, instance=turno)
+        if form.is_valid():
+            form.save()
+            return redirect("paciente_detalle", dni=paciente.dni)
+    else:
+        form = TurnoForm(instance=turno)
+    return render(request, "pacientes/turno_form.html", {"paciente": paciente, "form": form})
+
+#DELETE
+@login_required
+def turno_borrar(request, dni, turno_id):
+    paciente = get_object_or_404(Paciente, dni=dni)
+    turno = get_object_or_404(Turno, id=turno_id, paciente=paciente)
+    if request.method == "POST":
+        turno.delete()
+        return redirect("paciente_detalle", dni=paciente.dni)
+    return render(request, "pacientes/turno_confirmar_eliminacion.html", {"paciente": paciente, "turno": turno})

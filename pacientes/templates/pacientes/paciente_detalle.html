@@ -4,6 +4,7 @@
 
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="mb-0">{{ paciente.apellido_paciente }}, {{ paciente.nombre_paciente }}</h1>
+    <a href="{% url 'turno_crear' paciente.dni %}" class="btn btn-primary">Nuevo turno</a>
     <a href="{% url 'paciente_editar' paciente.dni %}" class="btn btn-warning">Editar</a>
   </div>
 

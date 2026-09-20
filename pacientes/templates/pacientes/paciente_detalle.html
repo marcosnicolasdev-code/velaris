@@ -1,15 +1,70 @@
 {% extends "base.html" %}
 {% block titulo %}{{ paciente.apellido_paciente }} — Velaris{% endblock %}
 {% block contenido %}
-  <h1>{{ paciente.apellido_paciente }}, {{ paciente.nombre_paciente }}</h1>
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">{{ paciente.apellido_paciente }}, {{ paciente.nombre_paciente }}</h1>
+    <a href="{% url 'paciente_editar' paciente.dni %}" class="btn btn-warning">Editar</a>
+  </div>
+
   <ul class="list-group mb-3">
     <li class="list-group-item"><b>DNI:</b> {{ paciente.dni }}</li>
     <li class="list-group-item"><b>Nacimiento:</b> {{ paciente.fecha_nacimiento }}</li>
     <li class="list-group-item"><b>Teléfono:</b> {{ paciente.telefono }}</li>
     <li class="list-group-item"><b>Correo:</b> {{ paciente.correo_electronico }}</li>
     <li class="list-group-item"><b>Obra social:</b> {{ paciente.obra_social }}</li>
-    <li class="list-group-item">  <b>Edad:</b> {{ paciente.edad }} años</li>
+    <li class="list-group-item"><b>Edad:</b> {{ paciente.edad }} años</li>
   </ul>
-  <a href="{% url 'paciente_editar' paciente.dni %}" class="btn btn-warning"> Editar</a>
-  <a href="{% url 'paciente_lista' %}" class="btn btn-secondary">Volver</a>
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Historia clínica</h2>
+    <div>
+      {% if puede_crear_privada %}
+        <a href="{% url 'evolucion_crear' paciente.dni %}" class="btn btn-primary">Nota privada</a>
+      {% endif %}
+      {% if puede_crear_medica %}
+        <a href="{% url 'evolucion_profesional_crear' paciente.dni %}" class="btn btn-success">Nueva evaluación</a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if evoluciones %}
+    {% for evolucion in evoluciones %}
+      <a href="{% url 'evolucion_detalle' paciente.dni evolucion.id %}" class="card mb-3 text-decoration-none text-dark">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <h5 class="card-title">{{ evolucion.get_tipo_display }}</h5>
+            <span class="text-muted">{{ evolucion.fecha_evolucion }}</span>
+          </div>
+
+          {% if evolucion.profesional %}
+            <p class="text-muted mb-2">
+              <small>Profesional: {{ evolucion.profesional }}</small>
+            </p>
+          {% elif evolucion.usuario %}
+            <p class="text-muted mb-2">
+              <small>Usuario: {{ evolucion.usuario.username }}</small>
+            </p>
+          {% endif %}
+
+          <p class="mb-0">{{ evolucion.primera_linea }}</p>
+
+          {% if evolucion.turno %}
+            <p class="mb-0">
+              <small>Turno asociado: {{ evolucion.turno.fecha_asistencia }}</small>
+            </p>
+          {% endif %}
+        </div>
+      </a>
+    {% endfor %}
+  {% else %}
+    <div class="alert alert-light">
+      No hay evoluciones registradas para este paciente.
+    </div>
+  {% endif %}
+
+  <div class="mt-3">
+    <a href="{% url 'paciente_lista' %}" class="btn btn-secondary">Volver</a>
+  </div>
+
 {% endblock %}

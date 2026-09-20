@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block titulo %}Evolución - {{ paciente.apellido_paciente }}{% endblock %}
+
+{% block contenido %}
+  <h1>{{ evolucion.get_tipo_display }}</h1>
+
+  <p>
+    <strong>Paciente:</strong>
+    {{ paciente.nombre_paciente }} {{ paciente.apellido_paciente }}
+    - DNI: {{ paciente.dni }}
+  </p>
+
+  <p class="text-muted">
+    Fecha: {{ evolucion.fecha_evolucion }}
+  </p>
+
+  {% if evolucion.profesional %}
+    <p class="text-muted">
+      Profesional:
+      {{ evolucion.profesional.usuario.get_full_name|default:evolucion.profesional.usuario.username }}
+    </p>
+  {% elif evolucion.usuario %}
+    <p class="text-muted">
+      Usuario: {{ evolucion.usuario.username }}
+    </p>
+  {% endif %}
+
+  <hr>
+
+  {% if secciones %}
+    {% for seccion in secciones %}
+      <section class="mb-3">
+        <strong>{{ seccion.etiqueta }}</strong>
+        <div style="white-space: pre-line;">{{ seccion.contenido|default:"Sin completar." }}</div>
+      </section>
+    {% endfor %}
+  {% else %}
+    <div style="white-space: pre-line;">
+      {{ evolucion.descripcion|default:"Sin descripción." }}
+    </div>
+  {% endif %}
+
+  <div class="mt-4">
+    <a href="{% url 'paciente_detalle' paciente.dni %}" class="btn btn-secondary">Volver</a>
+  </div>
+{% endblock %}

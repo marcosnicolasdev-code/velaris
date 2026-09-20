@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block titulo %}Nueva evolución{% endblock %}
+
+{% block contenido %}
+  <h1>Nueva evolución</h1>
+
+  <p>
+    Paciente:
+    <strong>{{ paciente.apellido_paciente }}, {{ paciente.nombre_paciente }}</strong>
+  </p>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="mb-3">
+      <label for="descripcion">Descripción</label>
+      <textarea
+        name="descripcion"
+        id="descripcion"
+        class="form-control"
+        rows="5"
+      ></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a
+      href="{% url 'paciente_detalle' paciente.dni %}"
+      class="btn btn-secondary"
+    >
+      Cancelar
+    </a>
+  </form>
+{% endblock %}

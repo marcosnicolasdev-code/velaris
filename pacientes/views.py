@@ -339,3 +339,10 @@ def turno_borrar(request, dni, turno_id):
         turno.delete()
         return redirect("paciente_detalle", dni=paciente.dni)
     return render(request, "pacientes/turno_confirmar_eliminacion.html", {"paciente": paciente, "turno": turno})
+
+#CRUD AGENDA
+
+@login_required
+def agenda(request):
+    return render(request, "pacientes/agenda.html")
+

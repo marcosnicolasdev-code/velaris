@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block titulo %}Agenda{% endblock %}
+{% block contenido %}
+  <h1>Agenda de turnos</h1>
+
+  <div id="calendario"></div>
+{% endblock %}
+
+{% block scripts  %}
+  <!-- la librería FullCalendar (se carga desde internet) -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+    
+    <script>
+        
+        document.addEventListener('DOMContentLoaded', function() { // El DOM permite que primero se cargue el calendario y despues la pagina
+            
+            var elemento = document.getElementById('calendario');
+
+            var calendario = new FullCalendar.Calendar(elemento, {
+                initialView: 'dayGridMonth',            // arranca en vista de mes
+                locale: 'es',                           // idioma español
+                headerToolbar: {
+                    left: 'prev,next today',            // botones de navegación
+                    center: 'title',                    // título del calendario (mes y año)
+                    right: 'dayGridMonth,timeGridWeek'  // botones para cambiar mes y semana
+                },
+            });
+            calendario.render();
+        });
+    </script>
+{% endblock %}

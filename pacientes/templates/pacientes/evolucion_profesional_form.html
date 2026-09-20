@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block titulo %}Nueva evolución médica{% endblock %}
+
+{% block contenido %}
+  <h1>Nueva evolución médica</h1>
+
+  <p>
+    Paciente:
+    <strong>{{ paciente.apellido_paciente }}, {{ paciente.nombre_paciente }}</strong>
+  </p>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="mb-3">
+      <label for="tipo">Tipo</label>
+      <select name="tipo" id="tipo" class="form-control" required>
+        <option value="control_mtc">Control MTC</option>
+        <option value="control_ntf">Control NTF</option>
+        <option value="control_prp">Control PRP</option>
+        <option value="mtc">MTC</option>
+        <option value="ntf">NTF</option>
+        <option value="nueva_evaluacion">Nueva evaluación</option>
+        <option value="primera_consulta">Primera consulta</option>
+        <option value="prp">PRP</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="motivo">Pte.:</label>
+      <textarea name="motivo" id="motivo" class="form-control" rows="3" required></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label for="antecedentes">Antecedentes:</label>
+      <textarea name="antecedentes" id="antecedentes" class="form-control" rows="3"></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label for="examen_fisico">Examen físico:</label>
+      <textarea name="examen_fisico" id="examen_fisico" class="form-control" rows="3"></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label for="se_indica">Se le indica:</label>
+      <textarea name="se_indica" id="se_indica" class="form-control" rows="3"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-success">Guardar evolución</button>
+    <a
+      href="{% url 'paciente_detalle' paciente.dni %}"
+      class="btn btn-secondary"
+    >
+      Cancelar
+    </a>
+  </form>
+{% endblock %}

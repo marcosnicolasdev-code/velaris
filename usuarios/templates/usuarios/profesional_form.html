@@ -1,16 +1,14 @@
 {% extends "base.html" %}
+
+{% block titulo %}Nuevo profesional{% endblock %}
+
 {% block contenido %}
-  <h1>Lista de Profesionales</h1>
-  
+  <h1>Nuevo profesional</h1>
+
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Filtrar</button>
-    <a href="{% url 'profesional_lista' %}" class="btn btn-secondary">Limpiar</a>
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a href="{% url 'profesional_lista' %}" class="btn btn-secondary">Cancelar</a>
   </form>
-  <ul>
-    {% for profesional in profesionales %}
-      <li>{{ profesional.usuario.username }} - {{ profesional.matricula }} - {{ profesional.especialidad }}</li>
-    {% endfor %}
-  </ul>
 {% endblock %}

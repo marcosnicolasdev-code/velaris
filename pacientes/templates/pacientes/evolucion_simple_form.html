@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block titulo %}Nueva evaluación{% endblock %}
+
+{% block contenido %}
+  <h1>Nueva evaluación</h1>
+
+  <p>
+    Paciente:
+    <strong>{{ paciente.apellido_paciente }}, {{ paciente.nombre_paciente }}</strong>
+  </p>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="mb-3">
+      <label for="tipo">Tipo de turno</label>
+      <select name="tipo" id="tipo" class="form-control" required>
+        <option value="ntf">NTF</option>
+        <option value="prp">PRP</option>
+        <option value="mtc">MTC</option>
+        <option value="privada">Privada</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="descripcion"><strong>Pte. realiza:</strong></label>
+      <textarea
+        name="descripcion"
+        id="descripcion"
+        class="form-control"
+        rows="8"
+        required
+      ></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-success">Guardar evaluación</button>
+    <a
+      href="{% url 'paciente_detalle' paciente.dni %}"
+      class="btn btn-secondary"
+    >
+      Cancelar
+    </a>
+  </form>
+
+{% endblock %}

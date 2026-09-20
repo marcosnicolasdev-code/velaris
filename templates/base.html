@@ -17,9 +17,21 @@
       </a>
       <!-- Barra buscador pacientes -->
       {% if user.is_authenticated %}
-      <form class="d-flex mx-auto" method="get" action="#" role="search" style="width: 40%;">          
-          <input class="form-control me-2" type="search" name="dni" placeholder="Buscar paciente por DNI..."aria-label="Search">
-          <button class="btn btn-light" type="submit">Buscar</button>
+      <form class="d-flex mx-auto"
+      method="get"
+      action="{% url 'paciente_lista' %}"
+      role="search"
+      style="width: 40%;"
+    >
+      <input
+        class="form-control me-2"
+        type="search"
+        name="q"
+        value="{{ request.GET.q }}"
+        placeholder="Buscar"
+        aria-label="Buscar"
+      >
+      <button class="btn btn-light" type="submit">Buscar</button>
         </form>
       <!-- Usuario + cerrar sesión --> 
       <div class="d-flex align-items-center text-white">
@@ -39,24 +51,28 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav mx-auto align-items-center" style="color: white;">
+                <ul class="navbar-nav mx-auto align-items-center" style="color: white;">
           <li class="nav-item mx-5">
-            <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'inicio' %} " style="color: white; font-size: 20px;">Nuevo paciente</a>
+            <!-- Este te lleva a la lista principal de pacientes-->
+            <a class="nav-link {% if request.path == '/pacientes/' %}active{% endif %}" href="{% url 'paciente_lista' %}" style="color: white; font-size: 20px;">Pacientes</a>
           </li>
           <li class="nav-item mx-5">
-            <a class="nav-link {% if request.path == '/pacientes/' %}active{% endif %}" href="{% url 'pacientes' %}" style="color: white; font-size: 20px;">Nuevo turno</a>
+            <a class="nav-link" href="#" style="color: white; font-size: 20px;">Nuevo turno</a>
           </li>
           <li class="nav-item mx-5">
-            <a class="nav-link {% if request.path == '/pacientes/' %}active{% endif %}" href="{% url 'pacientes' %}" style="color: white; font-size: 20px;">Agenda</a>
+            <a class="nav-link" href="#" style="color: white; font-size: 20px;">Agenda</a>
           </li>
           <li class="nav-item mx-5">
-            <a class="nav-link {% if request.path == '/pacientes/' %}active{% endif %}" href="{% url 'pacientes' %}" style="color: white; font-size: 20px;">Nueva venta</a>
+            <a class="nav-link" href="#" style="color: white; font-size: 20px;">Nueva venta</a>
           </li>
           <li class="nav-item mx-5">
-            <a class="nav-link {% if request.path == '/pacientes/' %}active{% endif %}" href="{% url 'pacientes' %}" style="color: white; font-size: 20px;">Stock</a>
+            <a class="nav-link" href="#" style="color: white; font-size: 20px;">Stock</a>
           </li>
           <li class="nav-item mx-5">
             <a class="nav-link {% if request.path == '/caja/movimiento/' %}active{% endif %}" href="{% url 'caja_movimientos' %}" style="color: white; font-size: 20px; ">Caja</a>
+          </li>
+          <li class="nav-item mx-5">
+            <a class="nav-link" href="#" style="color: white; font-size: 20px;">Ayuda</a>
           </li>
         </ul>
       </div>

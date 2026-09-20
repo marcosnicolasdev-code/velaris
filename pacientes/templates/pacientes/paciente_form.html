@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block titulo %}Formulario de paciente — Velaris{% endblock %}
+
+{% block contenido %}
+<style>
+  .errorlist {
+    color: #dc3545;
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 0;
+    font-size: 0.9rem;
+  }
+
+  .mb-3:has(.errorlist) input,
+  .mb-3:has(.errorlist) select {
+    border: 2px solid #dc3545 !important;
+  }
+</style>
+
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h1 class="card-title mb-4 text-center">
+            Formulario de alta de pacientes
+          </h1>
+
+          <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% if form.errors %}
+              <div class="alert alert-danger" role="alert">
+                Revisá los campos marcados en rojo.
+              </div>
+            {% endif %}
+
+            <div class="mb-3">
+              {{ form.dni.label_tag }}
+              {{ form.dni }}
+              {{ form.dni.errors }}
+            </div>
+
+            <div class="mb-3">
+              {{ form.nombre_paciente.label_tag }}
+              {{ form.nombre_paciente }}
+              {{ form.nombre_paciente.errors }}
+            </div>
+
+            <div class="mb-3">
+              {{ form.apellido_paciente.label_tag }}
+              {{ form.apellido_paciente }}
+              {{ form.apellido_paciente.errors }}
+            </div>
+
+            <div class="mb-3">
+              {{ form.fecha_nacimiento.label_tag }}
+              {{ form.fecha_nacimiento }}
+              <div id="edad-calculada" class="form-text"></div>
+              {{ form.fecha_nacimiento.errors }}
+            </div>
+
+            <div class="mb-3">
+              {{ form.domicilio.label_tag }}
+              {{ form.domicilio }}
+              {{ form.domicilio.errors }}
+            </div>
+
+            <div class="mb-3">
+              {{ form.localidad.label_tag }}
+              {{ form.localidad }}
+              {{ form.localidad.errors }}
+            </div>
+
+            <div class="mb-3">
+              {{ form.correo_electronico.label_tag }}
+              {{ form.correo_electronico }}
+              {{ form.correo_electronico.errors }}
+            </div>
+
+            <div class="mb-3">
+              {{ form.telefono.label_tag }}
+              {{ form.telefono }}
+              {{ form.telefono.errors }}
+            </div>
+
+            <div class="mb-3">
+              {{ form.obra_social.label_tag }}
+              {{ form.obra_social }}
+              {{ form.obra_social.errors }}
+            </div>
+
+            <div class="mb-3">
+              {{ form.sexo.label_tag }}
+              {{ form.sexo }}
+              {{ form.sexo.errors }}
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-success">
+                Guardar
+              </button>
+
+              {% if form.instance.pk %}
+                <a
+                  href="{% url 'paciente_borrar' form.instance.dni %}"
+                  class="btn btn-danger"
+                >
+                  Borrar paciente
+                </a>
+              {% endif %}
+
+              <a href="{% url 'paciente_lista' %}" class="btn btn-secondary">
+                Cancelar
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const fechaNacimiento = document.getElementById("id_fecha_nacimiento");
+  const edadCalculada = document.getElementById("edad-calculada");
+
+  if (fechaNacimiento) {
+    fechaNacimiento.addEventListener("change", function () {
+      const nacimiento = new Date(this.value + "T00:00:00");
+      const hoy = new Date();
+
+      let edad = hoy.getFullYear() - nacimiento.getFullYear();
+      const diferenciaMes = hoy.getMonth() - nacimiento.getMonth();
+
+      if (
+        diferenciaMes < 0 ||
+        (diferenciaMes === 0 && hoy.getDate() < nacimiento.getDate())
+      ) {
+        edad--;
+      }
+
+      edadCalculada.textContent = `Edad: ${edad} años`;
+    });
+  }
+</script>
+{% endblock %}

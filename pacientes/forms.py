@@ -1,12 +1,12 @@
 from django import forms
-from .models import Paciente
+from .models import Paciente, Turno 
 
 class PacienteForm(forms.ModelForm):
 
     OPCIONES_SEXO = [
         ("", "Seleccionar..."),
-        ("Varón", "Varón"),
-        ("Mujer", "Mujer"),
+        ("Masculino", "Masculino"),
+        ("Femenino", "Femenino"),
     ]
 
     sexo = forms.ChoiceField(
@@ -52,4 +52,12 @@ class PacienteForm(forms.ModelForm):
             "correo_electronico": forms.EmailInput(attrs={"class": "form-control", "placeholder": "ejemplo@correo.com"}),
             "telefono": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ej: 3416123456"}),
             "obra_social": forms.TextInput(attrs={"class": "form-control", "placeholder": "Nombre de cobertura"}),
+        }
+
+class TurnoForm(forms.ModelForm):
+    class Meta:
+        model = Turno
+        fields = ["tratamiento", "fecha_asistencia", "estado"]
+        widgets = {
+            "fecha_asistencia": forms.DateInput(attrs={"class": "form-control", "type": "datetime-local"}),
         }

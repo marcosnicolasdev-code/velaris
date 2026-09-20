@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block titulo %}Turno{% endblock %}
+
+{% block contenido %}
+  <h1>Nuevo turno para {{ paciente.nombre_paciente }} {{ paciente.apellido_paciente }}</h1>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a href="{% url 'paciente_detalle' paciente.dni %}" class="btn btn-secondary">Cancelar</a>
+  </form>
+{% endblock %}

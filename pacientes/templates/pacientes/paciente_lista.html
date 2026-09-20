@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block titulo %}Pacientes — Velaris{% endblock %}
+{% block contenido %}
+  <h1>Lista de Pacientes</h1>
+  <a href="{% url 'paciente_crear' %}" class="btn btn-primary mb-3"> + Nuevo paciente</a>
+
+  <form method="get" class="mb-3">
+  <input
+    type="search"
+    name="q"
+    value="{{ q }}"
+    placeholder="Buscar"
+    class="form-control"
+  >
+  </form>
+
+  <table class="table table-striped">
+    <thead><tr><th>DNI</th><th>Nombre</th><th>Apellido</th><th></th></tr></thead>
+    <tbody>
+      {% for p in pacientes %}
+        <tr>
+          <td>{{ p.dni }}</td>
+          <td>{{ p.nombre_paciente }}</td>
+          <td>{{ p.apellido_paciente }}</td>
+          <td>
+            <a href="{% url 'paciente_detalle' p.dni %}" class="btn btn-sm btn-info">Historia Clinica</a>
+            <a href="{% url 'agendar_turno' p.dni %}"  class="btn btn-sm btn-primary">Agendar turno</a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4">No se encontraron pacientes.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

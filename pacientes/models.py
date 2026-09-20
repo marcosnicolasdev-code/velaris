@@ -1,5 +1,5 @@
+from datetime import date
 from django.db import models
-
 
 class Paciente(models.Model):
     dni = models.CharField(max_length=20, primary_key=True)
@@ -11,7 +11,22 @@ class Paciente(models.Model):
     correo_electronico = models.EmailField(max_length=50)
     telefono = models.CharField(max_length=20)
     obra_social = models.CharField(max_length=20, blank=True)
-    sexo = models.CharField(max_length=1, blank=True)
+    sexo = models.CharField(max_length=10, blank=True)
+
+    @property
+    def edad(self):
+        hoy = date.today()
+        edad = hoy.year - self.fecha_nacimiento.year
+
+        if (hoy.month, hoy.day) < (
+            self.fecha_nacimiento.month,
+            self.fecha_nacimiento.day,
+        ):
+            edad -= 1
+
+        return edad
+
+
 
     def __str__(self):
         return f"{self.apellido_paciente}, {self.nombre_paciente}"

@@ -17,9 +17,21 @@
       </a>
       <!-- Barra buscador pacientes -->
       {% if user.is_authenticated %}
-      <form class="d-flex mx-auto" method="get" action="#" role="search" style="width: 40%;">          
-          <input class="form-control me-2" type="search" name="dni" placeholder="Buscar paciente por DNI..."aria-label="Search">
-          <button class="btn btn-light" type="submit">Buscar</button>
+      <form class="d-flex mx-auto"
+      method="get"
+      action="{% url 'paciente_lista' %}"
+      role="search"
+      style="width: 40%;"
+    >
+      <input
+        class="form-control me-2"
+        type="search"
+        name="q"
+        value="{{ request.GET.q }}"
+        placeholder="Buscar"
+        aria-label="Buscar"
+      >
+      <button class="btn btn-light" type="submit">Buscar</button>
         </form>
       <!-- Usuario + cerrar sesión --> 
       <div class="d-flex align-items-center text-white">

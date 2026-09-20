@@ -24,6 +24,7 @@
                     center: 'title',                    // título del calendario (mes y año)
                     right: 'dayGridMonth,timeGridWeek'  // botones para cambiar mes y semana
                 },
+                events: '{% url "turnos_json" %}'
             });
             calendario.render();
         });

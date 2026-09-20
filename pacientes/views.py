@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.utils import timezone
+from django.http import JsonResponse
 import unicodedata
 import re
 
@@ -346,3 +347,13 @@ def turno_borrar(request, dni, turno_id):
 def agenda(request):
     return render(request, "pacientes/agenda.html")
 
+@login_required
+def turnos_json(request):
+    turnos = Turno.objects.all()
+    eventos = []
+    for turno in turnos:
+        eventos.append({
+            "title": f"{turno.paciente.apellido_paciente} - {turno.get_estado_display()}",
+            "start": turno.fecha_asistencia.isoformat(),
+        })
+    return JsonResponse (eventos, safe=False)

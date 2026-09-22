@@ -2,6 +2,21 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models import Sum
 
+class Usuario(models.Model):
+    ROLES = [
+        ('admin', 'Admin'),
+        ('empleado', 'Empleado'),
+        ('cliente', 'Cliente'),
+    ]
+    id_usuario=models.AutoField(primary_key=True)
+    nombre_Usuario = models.CharField(max_length = 100)
+    apellido_Usuario = models.CharField(max_length = 100)
+    contrasena = models.CharField(max_length=128)
+    rol_Usuario = models.CharField(max_length=20, choices = ROLES, default='empleado')
+
+    def __str__(self):
+        return f"{self.nombre_Usuario} { self.apellido_Usuario} ({self.rol_Usuario})"
+
 class Profesional (models.Model):
     usuario = models.OneToOneField(User, on_delete=models.CASCADE)
     matricula = models.CharField(max_length=20)

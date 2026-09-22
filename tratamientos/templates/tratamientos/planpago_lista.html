@@ -1,0 +1,37 @@
+{% extends 'base.html'%}
+{%block titulo%}Planes de Pago - Velaris{%endblock%}
+{% block content %}
+<h2>Planes de Pago</h2>
+<a href="{% url 'planpago_crear'%}"class="btn btn-primary mb-3">Nuevo Plan</a>
+<table class="table table-striped">
+  <thead>
+  <tr>
+   <th>Codigo de Plan</th>
+   <th>Venta asociada</th>
+   <th>Tratamiento asociado</th>
+   <th>Valor de Sesion</th>
+   <th>Fecha Inicio de Tratamiento</th>
+   <th>Metodo de pago</th>
+  </tr>
+  </thead>
+  <tbody>
+{% for plan in planes %}
+<tr>
+  <td>{{plan.id_plan}}</td>
+  <td>{{plan.id_venta|default:"-"}}</td>
+  <td>{{plan.nombre_tratamiento}}</td>
+  <td>${{plan.valor_sesion}}</td>
+  <td>{{plan.fecha_inicio_tratamiento}}</td>
+  <td>{{plan.get_metodo_pago_display}}</td>
+  
+  <td>
+   <a href="{% url 'planpago_editar' plan.id_plan %}">Editar</a>
+   <a href="{% url 'planpago_borrar' plan.id_plan %}">Borrar</a>
+  </td>
+</tr>
+{% empty %}
+ <tr><td colspan="7">No hay planes cargados</td></tr>
+{% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %} 
+{% block titulo %}Tratamientos - Velaris{% endblock %}
+{% block content %} 
+<h1>Tratamientos</h1> 
+<a href="{% url 'tratamiento_crear' %}" class="btn btn-primary mb-3">+ Nuevo tratamiento</a> 
+<br><br>
+
+<table class="table table-striped"> 
+    <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Duracion</th>
+        <th>Sesiones</th>
+        <th></th>
+    </tr>
+{% for tratamiento in tratamientos %} 
+    <tr>
+        <td>{{tratamiento.id_tratamiento}}</td>
+        <td>{{tratamiento.nombre_tratamiento}}</td>
+        <td>{{tratamiento.duracion_tratamiento}}</td>
+        <td>{{tratamiento.sesion_tratamiento}}</td>
+        <td>
+        <a href="{%  url 'tratamiento_editar' tratamiento.id_tratamiento %}">Editar</a>
+        <a href="{%  url 'tratamiento_borrar' tratamiento.id_tratamiento %}">Borrar</a>
+        </td>  
+    </tr>
+    {%empty%}
+    <tr><td colspan="3">No hay tratamientos</td></tr>
+    {% endfor %} 
+</table> 
+{% endblock %}

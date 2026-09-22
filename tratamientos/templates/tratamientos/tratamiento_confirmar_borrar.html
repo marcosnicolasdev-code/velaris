@@ -1,0 +1,12 @@
+{% extends "base.html" %} 
+{% block content %}
+<div style="padding:20px;">
+<h2>Borrar {{tratamiento.nombre_tratamiento}}?</h2>
+<p>Estas seguro?</p> 
+<form method="post"> 
+ {% csrf_token %} 
+ <button type="submit" class="btn btn-danger">Si, borrar</button> 
+ <a href="{% url 'tratamiento_lista' %}" class="btn btn-secondary">Cancelar</a> 
+</form> 
+</div>
+{% endblock %}

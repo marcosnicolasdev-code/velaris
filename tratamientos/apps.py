@@ -2,8 +2,6 @@ from django.apps import AppConfig
 
 
 class TratamientosConfig(AppConfig):
-<<<<<<< HEAD
+    default_auto_field = 'django.db.models.BigAutoField'
     name = 'tratamientos'
-=======
-    name = 'tratamientos'
->>>>>>> feature/models-tratamientos
+

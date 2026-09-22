@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block titulo %}Movimientos del día — Velaris{% endblock %}
+
+{% block contenido %}
+  <h1>Movimientos de hoy {% now "d/m/Y" %} - Caja #{{ user.caja.usuario.get_full_name | default:user.caja.usuario.username }}</h1>
+  {% if es_propia %} <!-- Se restringe la opcion de registrar movimientos si no es el dueño de la caja el la mira -->
+    <a href="{% url 'registrar_movimiento' %}" class="btn btn-primary mb-3">Registrar nuevo movimiento</a>
+  {% endif %}
+  <!-- Resumen del dia -->
+  <div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-bg-success">
+            <div class="card-body">
+                <h5>Ingresos</h5>
+                <p class="fs-4">${{ ingresos }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-bg-danger">
+            <div class="card-body">
+                <h5>Egresos</h5>
+                <p class="fs-4">${{ egresos }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-bg-info">
+            <div class="card-body">
+                <h5>Saldo</h5>
+                <p class="fs-4">${{ saldo }}</p>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <!-- lista de movimientos -->
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Hora</th>
+        <th>Tipo de movimiento</th>
+        <th>Categoría</th>
+        <th>Descripción</th>
+        <th>Importe</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in movimientos %}
+        <tr>
+          <td>{{ m.fecha_movimiento|date:"H:i" }}</td> <!-- Muestra solo la hora y minutos -->
+          <td>{{ m.get_tipo_movimiento_display }}</td>
+          <td>{{ m.get_categoria_movimiento_display }}</td>
+          <td>{{ m.descripcion_movimiento }}</td>
+          <td>${{ m.importe_movimiento }}</td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="5">No hay movimientos registrados hoy.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

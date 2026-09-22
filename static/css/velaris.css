@@ -1,0 +1,36 @@
+/* Fondo general y fuente */
+body {
+    background-color: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.header-bar{
+    background-color: #002B66;
+    color: white;
+}
+
+/* Tarjeta contenedora de la interfaz */
+.tarjeta-login {
+    border: 3px solid #002B66;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    padding: 100px 20px;
+    color: #002B66;
+}
+
+/* Botón con el color principal del sistema */
+.btn-velaris {
+    background-color: #002B66;
+    color: white;
+    border-radius: 8px;
+    font-weight: 600;
+    padding: 10px;
+    transition: all 0.2s ease;
+}
+
+.btn-velaris:hover {
+    background-color: #002B66;
+    color: white;
+}
+

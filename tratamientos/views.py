@@ -35,4 +35,71 @@ def tratamiento_borrar(request,id):
         return redirect("tratamiento_lista")
     return render(request,"tratamientos/tratamiento_confirmar.html",{"tratamiento": tratamiento})
 
-# Create your views here.
+# --------PLAN PAGO -------------
+@login_required 
+def planpago_lista (request): 
+    planes = PlanPago.objects.select_related('nombre_tratamiento').all()
+    return render (request,"tratamientos/planpago_lista.html", {"planes": planes})
+@login_required 
+def planpago_crear(request): 
+    if request.method == 'POST': 
+        form = PlanPagoForm(request.POST)
+        if form.is_valid(): 
+         form.save()
+         return redirect("planpago_lista")
+    else:
+     form = PlanPagoForm()
+     return render(request,"tratamientos/planpago_form.html", {"form":form})
+@login_required
+def planpago_editar(request,id):
+    planes = get_object_or_404(PlanPago,id_plan=id)
+    if request.method == "POST":
+        form = PlanPagoForm (request.POST,instance=planes)
+        if form.is_valid():
+         form.save()
+         return redirect("planpago_lista")
+    else:
+        form = PlanPagoForm(instance=planes)
+    return render(request,"tratamientos/planpago_form.html",{"form": form})
+@login_required
+def planpago_borrar(request,id):
+    planes = get_object_or_404(PlanPago,id_plan=id)
+    if request.method =="POST":
+        planes.delete()
+        return redirect("planpago_lista")
+    return render(request,"tratamientos/planpago_confirmar_borrar.html",{"planes": planes})
+
+# ---------Sesion ----------------
+@login_required 
+def sesion_lista (request): 
+    sesiones = Sesion.objects.all()
+    return render (request,"tratamientos/sesion_lista.html", {"sesiones": sesiones})
+
+@login_required 
+def sesion_crear(request): 
+    if request.method == 'POST': 
+        form = SesionForm(request.POST)
+        if form.is_valid(): 
+         form.save()
+         return redirect("sesion_lista")
+    else:
+        form = SesionForm()
+    return render(request,"tratamientos/sesion_form.html", {"form":form})
+@login_required
+def sesion_editar(request,id_sesion):
+    sesion = get_object_or_404(Sesion, id_sesion=id_sesion)
+    if request.method == "POST":
+        form = SesionForm (request.POST,instance=sesion)
+        if form.is_valid():
+         form.save()
+         return redirect("sesion_lista")
+    else:
+        form = SesionForm(instance=sesion)
+    return render(request,"tratamientos/sesion_form.html",{"form": form})
+@login_required
+def sesion_borrar(request,id_sesion):
+    sesion = get_object_or_404(Sesion, id_sesion=id_sesion)
+    if request.method =="POST":
+        sesion.delete()
+        return redirect("sesion_lista")
+    return render(request,"tratamientos/sesion_confirmar_borrar.html",{"sesion": sesion})

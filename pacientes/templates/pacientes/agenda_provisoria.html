@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block titulo %}Agendar turno — Velaris{% endblock %}
+
+{% block contenido %}
+<div class="container py-4">
+  <h1>Agendar turno</h1>
+
+  <div class="alert alert-info">
+    Paciente seleccionado:
+    <strong>
+      {{ paciente.apellido_paciente }}, {{ paciente.nombre_paciente }}
+    </strong>
+    — DNI: {{ paciente.dni }}
+  </div>
+
+  <p>La agenda se encuentra en construcción.</p>
+
+  <a href="{% url 'paciente_lista' %}" class="btn btn-secondary">
+    Volver a pacientes
+  </a>
+</div>
+{% endblock %}

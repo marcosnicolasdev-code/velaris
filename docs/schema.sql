@@ -60,8 +60,8 @@ CREATE TABLE turno (
     idTratamiento           VARCHAR(20) NOT NULL,
     dni                     VARCHAR(20) NOT NULL,
     estado                  VARCHAR(20) NOT NULL
-                            CHECK (estado IN ('asignado', 'reservado', 'finalizado', 'ausente')), 
-    fechaAsistencia           DATETIME NOT NULL,
+                            CHECK (estado IN ('reservado', 'asignado', 'finalizado', 'ausente', 'cancelado')),
+    fechaAsistencia         DATETIME NOT NULL,
     FOREIGN KEY (idTratamiento) REFERENCES tratamiento(idTratamiento),
     FOREIGN KEY (dni) REFERENCES paciente(dni)
 );
@@ -156,6 +156,9 @@ CREATE TABLE movimientoCaja (
     idCaja                  INT NOT NULL,
     tipoMovimiento          VARCHAR(20) NOT NULL
                             CHECK (tipoMovimiento IN ('ingreso', 'egreso')),
+    categoriaMovimiento     VARCHAR(30) NOT NULL
+                            CHECK (categoriaMovimiento IN ('venta', 'pago_proveedor', 'pago_servicio', 'pago_impuesto', 'otro')),
+    descripcionMovimiento   VARCHAR(200),
     importeMovimiento       INT NOT NULL,
     fechaMovimiento         DATETIME NOT NULL,
     FOREIGN KEY (idCaja) REFERENCES caja(idCaja)

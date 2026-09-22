@@ -1,0 +1,76 @@
+<<<<<<< HEAD
+{% extends 'base.html' %}
+{% load static %}
+{% block titulo %}Iniciar Sesion - Velaris{% endblock %}
+
+{% block contenido %}
+<div class="row justify-content-between align-items-center my-5">
+    <div class="col-md-6 col-lg-7 d-none d-md-block">
+        <div class="d-flex justify-content-center align-items-center h-100">
+            <img src="{% static 'css/img/velarisImagenV3.png' %}" alt="Imagen Login" class="img-fluid position-relative z-1 me-auto" style="max-height: 500px; width: auto;">        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm tarjeta-login">
+            <div class="card-body p-4">
+                <h3 class="card-title text-center mb-4">¡Bienvenido!</h3>
+
+                {% if form.errors %}
+                <div class="alert alert-danger" role="alert">
+                    Usuario o contraseña incorrectos.
+                </div>
+                {% endif %}
+
+                <form method="post" action="{% url 'login' %}">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label">Usuario</label>
+                        <div class="input-group">
+                         <span class="input-group-text">👤</span> <!-- Emoji o logo -->
+                        <input type="text" name="username" id="id_username" autofocus maxlength="254" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_password" class="form-label">Contraseña</label>
+                          <div class="input-group">
+                            <span class="input-group-text">🔒</span> <!-- Emoji o logo -->
+                             <input type="password" name="password" class="form-control" id="id_password" placeholder="Tu contraseña">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 mt-3">Ingresar</button>
+                    <div class="text-center mt-3">
+                        <a href="#" class="text-decoration-none text-muted small">
+                        ¿Has olvidado nombre de usuario y/o contraseña?
+                        </a>
+                        <a href="#" class="text-decoration-none small">Registrar nuevo usuario</a>
+                    </div>
+                    <input type="hidden" name="next" value="{{ next }}">
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+=======
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Login Velaris</title>
+    <style>
+     body{font-family:sans-serif;display:flex;justify-content:center; align-items:center; height:100vh;background:#f3f3f3}
+     form{background:white;padding:30px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.1)}
+     input {display:block;width:100%;margin:10px 0;padding:8px}
+     button {width:100%;padding:10px;background:black;color:white;border:none;cursor:pointer}
+    </style>
+</head>
+<body>
+  <form method="post">
+    {% csrf_token %}
+    <h2>Ingresar a Velaris</h2>
+    {{form.as_p}}
+    <button type="submit">Entrar</button>
+  </form>  
+</body>
+</html>
+>>>>>>> feature/models-tratamientos

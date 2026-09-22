@@ -1,0 +1,33 @@
+{% extends 'base.html'%}
+{% block content %}
+<h2>Sesiones</h2>
+<a href="{% url 'sesion_crear'%}" class="btn btn-primary">Nueva Sesion</a>
+<table class="table mt-3">
+  <thead>
+  <tr>
+   <th>ID</th>
+   <th>Numero Sesion</th>
+   <th>Duracion</th>
+   <th>Plan de Pago asociado</th>
+   <th>Estado de pago</th>
+  </tr>
+  </thead>
+  <tbody>
+{% for sesion in sesiones %}
+<tr>
+  <td>{{sesion.id_sesion}}</td>
+  <th>{{sesion.numero_sesion}}</th>
+  <th>{{sesion.duracion_sesion}}</th>
+  <td>{{sesion.id_plan|default:"-"}}</td>
+  <td>{{sesion.estado_pago}}</td>
+  <td>
+   <a href="{% url 'sesion_editar' sesion.id_sesion %}">Editar</a>
+   <a href="{% url 'sesion_borrar' sesion.id_sesion%}">Borrar</a>
+  </td>
+</tr>
+{% empty %}
+ <tr><td colspan="4">No hay sesiones</td></tr>
+{% endfor %}
+  </tbody>
+</table>
+{% endblock %}

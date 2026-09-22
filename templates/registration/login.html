@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Login Velaris</title>
+    <style>
+     body{font-family:sans-serif;display:flex;justify-content:center; align-items:center; height:100vh;background:#f3f3f3}
+     form{background:white;padding:30px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.1)}
+     input {display:block;width:100%;margin:10px 0;padding:8px}
+     button {width:100%;padding:10px;background:black;color:white;border:none;cursor:pointer}
+    </style>
+</head>
+<body>
+  <form method="post">
+    {% csrf_token %}
+    <h2>Ingresar a Velaris</h2>
+    {{form.as_p}}
+    <button type="submit">Entrar</button>
+  </form>  
+</body>
+</html>

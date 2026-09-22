@@ -1,0 +1,28 @@
+[33mfd88195[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mCRUD-Productos[m[33m, [m[1;32mmain[m[33m)[m HEAD@{0}: checkout: moving from main to CRUD-Productos
+[33mfd88195[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mCRUD-Productos[m[33m, [m[1;32mmain[m[33m)[m HEAD@{1}: pull: Fast-forward
+[33m6f82662[m HEAD@{2}: commit: Primera muestra de posible login, se modificó fondo e imagen principal
+[33mdd51778[m HEAD@{3}: pull: Fast-forward
+[33me928a74[m HEAD@{4}: commit: Insercion de la imagen Velaris
+[33m5d4572f[m HEAD@{5}: pull: Fast-forward
+[33mb41b290[m HEAD@{6}: commit: Ticket -https://terciariourquiza-velaris.atlassian.net/browse/SCRUM-18 - Prompt: implementar plantilla e interfaz de inicio de sesión
+[33m4c50306[m HEAD@{7}: merge feature/SCRUM-3-html-login: Merge made by the 'ort' strategy.
+[33m19ced31[m HEAD@{8}: checkout: moving from feature/SCRUM-3-html-login to main
+[33m383cae0[m[33m ([m[1;31morigin/feature/SCRUM-3-html-login[m[33m, [m[1;32mfeature/SCRUM-3-html-login[m[33m)[m HEAD@{9}: checkout: moving from main to feature/SCRUM-3-html-login
+[33m19ced31[m HEAD@{10}: pull: Fast-forward
+[33mf29ca8d[m HEAD@{11}: checkout: moving from feature/SCRUM-3-html-login to main
+[33m383cae0[m[33m ([m[1;31morigin/feature/SCRUM-3-html-login[m[33m, [m[1;32mfeature/SCRUM-3-html-login[m[33m)[m HEAD@{12}: commit: SCRUM-3: Agrego base.html, velaris.css y plantilla de login
+[33mf29ca8d[m HEAD@{13}: checkout: moving from main to feature/SCRUM-3-html-login
+[33mf29ca8d[m HEAD@{14}: pull: Fast-forward
+[33m29f145f[m[33m ([m[1;32mfeature/models-productos[m[33m)[m HEAD@{15}: checkout: moving from feature/models-productos to main
+[33m29f145f[m[33m ([m[1;32mfeature/models-productos[m[33m)[m HEAD@{16}: checkout: moving from feature/models-pacientes to feature/models-productos
+[33m6b98a79[m[33m ([m[1;32mfeature/models-pacientes[m[33m)[m HEAD@{17}: checkout: moving from main to feature/models-pacientes
+[33m29f145f[m[33m ([m[1;32mfeature/models-productos[m[33m)[m HEAD@{18}: checkout: moving from feature/models-productos to main
+[33m29f145f[m[33m ([m[1;32mfeature/models-productos[m[33m)[m HEAD@{19}: checkout: moving from main to feature/models-productos
+[33m29f145f[m[33m ([m[1;32mfeature/models-productos[m[33m)[m HEAD@{20}: checkout: moving from feature/models-productos to main
+[33m29f145f[m[33m ([m[1;32mfeature/models-productos[m[33m)[m HEAD@{21}: checkout: moving from main to feature/models-productos
+[33m29f145f[m[33m ([m[1;32mfeature/models-productos[m[33m)[m HEAD@{22}: pull origin main: Fast-forward
+[33ma669b80[m HEAD@{23}: commit: Se creo app de productos
+[33mc574795[m HEAD@{24}: pull origin main: Fast-forward
+[33md1faa8b[m HEAD@{25}: pull origin main: Fast-forward
+[33m228f2f2[m HEAD@{26}: pull origin main: Fast-forward
+[33md618008[m HEAD@{27}: clone: from https://github.com/marcosnicolasdev-code/velaris.git

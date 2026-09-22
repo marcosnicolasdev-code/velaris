@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block titulo %}Productos — Velaris{% endblock %}
+{% block contenido %}
+  <h1>Productos</h1>
+  <a href="{% url 'producto_crear' %}" class="btn btn-primary mb-3">Nuevo prodcuto</a>
+
+
+    <table class="table table-striped"></table>
+        <thead><tr><th>Codigo</th><th>Nombre</th><th>Stock</th><th>Precio</th></tr></thead>
+        <tbody>
+        {% for p in productos %}
+            <tr>
+                <td>{{ p.codigo_producto }}</td>
+                <td>{{ p.nombre_producto }}</td>
+                <td>
+                {{ p.cantidad_producto }}
+                {% if p.stock_bajo %}
+                    <span class="badge bg-danger">Stock bajo</span>
+                {% endif %}
+                </td>
+                <td>${{ p.precio_producto }}</td>
+                <td>
+                    <a href="{% url 'producto_editar' p.codigo_producto %}" class="btn btn-sm btn-secondary">Editar</a>
+                    <a href="{% url 'producto_borrar' p.codigo_producto %}" class="btn btn-sm btn-danger">Borrar</a>
+                </td>
+            </tr>
+            {% empty %}
+                <tr><td colspan="5">No hay productos cargados.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endblock %}

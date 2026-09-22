@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-from django.shortcuts import render
-
-# Create your views here.
-=======
 from django.shortcuts import render,redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import Tratamiento, PlanPago, Sesion 
@@ -112,4 +107,3 @@ def sesion_borrar(request,id_sesion):
         sesion.delete()
         return redirect("sesion_lista")
     return render(request,"tratamientos/sesion_confirmar_borrar.html",{"sesion": sesion})
->>>>>>> feature/models-tratamientos

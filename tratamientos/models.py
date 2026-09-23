@@ -23,14 +23,26 @@ class PlanPago(models.Model):
     ('tarjeta_debito', 'Tarjeta Debito'),
     ('tarjeta_credito','Tarjeta Credito')
   ]
+  ESTADOS = [("activo", "Activo"), ("completado", "Completado")]
+
   id_plan = models.AutoField(primary_key=True)
-  #dni = models.ForeignKey("pacientes.Paciente", on_delete=models.PROTECT)
+  dni = models.ForeignKey("pacientes.Paciente", on_delete=models.PROTECT)
   #id_venta = models.ForeignKey("ventas.Venta", on_delete=models.PROTECT)
-  nombre_tratamiento = models.ForeignKey("Tratamiento", on_delete=models.CASCADE, null=True, blank=True)
+  tratamiento = models.ForeignKey("Tratamiento", on_delete=models.PROTECT)
   valor_sesion = models.IntegerField()
-  fecha_inicio_tratamiento = models.DateField()
-  metodo_pago= models.CharField(max_length=20, choices= METODO_PAGO_CHOICES, default='efectivo', verbose_name="Metodo de pago")
-  def __str__(self): return f"{self.nombre_tratamiento} - {self.metodo_pago}-${self.valor_sesion}" 
+  fecha_inicio_tratamiento = models.DateField(auto_now_add=True)
+  metodo_pago= models.CharField(max_length=20, choices= METODO_PAGO_CHOICES, default='efectivo')
+
+  sesiones_total = models.SmallIntegerField()
+  sesiones_consumidas = models.SmallIntegerField(default=0)
+  estado = models.CharField(max_length=20, choices=ESTADOS, default="activo")
+
+  @property
+  def sesiones_restantes(self):
+    return self.sesiones_total - self.sesiones_consumidas
+
+  def __str__(self): 
+    return f"{self.dni} - {self.tratamiento} ({self.sesiones_restantes})" 
 
 class Sesion(models.Model): 
   ESTADOS_PAGO = [("pendiente", "Pendiente"), ("abonado", "Abonado")]

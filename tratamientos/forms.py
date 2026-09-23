@@ -8,20 +8,12 @@ class TratamientoForm(forms.ModelForm):
 class PlanPagoForm(forms.ModelForm):
     class Meta:
         model = PlanPago
-        fields = ["nombre_tratamiento","valor_sesion", "fecha_inicio_tratamiento", 'metodo_pago']
-    widgets = {
-        'fecha_inicio_tratamiento':forms.DateInput(
-         attrs ={'type':'date'}
-        ),
-    }
+        fields = ["tratamiento","valor_sesion", 'metodo_pago']
+
 class SesionForm(forms.ModelForm):
     class Meta:
         model = Sesion
         fields = ["numero_sesion","duracion_sesion", 'estado_pago']
-    widgets = {
-        'fecha_sesion':forms.DateInput(
-         attrs ={'type':'date'}
-        ),
-    }
+
 
 

@@ -21,7 +21,7 @@
     <h2>Historia clínica</h2>
     <div>
       {% if puede_crear_privada %}
-        <a href="{% url 'evolucion_crear' paciente.dni %}" class="btn btn-primary">Nota privada</a>
+        <a href="{% url 'evolucion_crear' paciente.dni %}" class="btn btn-primary">Evolución privada</a>
       {% endif %}
       {% if puede_crear_medica %}
         <a href="{% url 'evolucion_profesional_crear' paciente.dni %}" class="btn btn-success">Nueva evaluación</a>

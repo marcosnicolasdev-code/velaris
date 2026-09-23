@@ -60,6 +60,9 @@
             <a class="nav-link text-white fs-5 {% if request.path == '/' %}active{% endif %}" href="{% url 'inicio' %} ">Nuevo turno</a>
           </li>
           <li class="nav-item mx-3">
+            <a class="nav-link text-white fs-5 {% if request.path == '/' %}active{% endif %}" href="{% url 'tratamiento_lista' %} ">Nuevo tratamiento</a>
+          </li>
+          <li class="nav-item mx-3">
             <a class="nav-link text-white fs-5 {% if request.path == '/' %}active{% endif %}" href="{% url 'agenda' %} ">Agenda</a>
           </li>
           <li class="nav-item mx-3">

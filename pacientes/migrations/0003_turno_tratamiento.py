@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('pacientes', '0002_rename_apellidopaciente_paciente_apellido_paciente_and_more'),
-        ('tratamientos', '0001_initial'),
+        ('tratamientos', '0002_initial'),
     ]
 
     operations = [

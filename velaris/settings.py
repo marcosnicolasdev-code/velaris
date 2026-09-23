@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "productos",
     "crispy_forms",
     "crispy_bootstrap5",
+    "django.contrib.humanize",
 ]
 
 MIDDLEWARE = [
@@ -116,6 +117,11 @@ TIME_ZONE = 'America/Argentina/Buenos_Aires'
 USE_I18N = True
 
 USE_TZ = True
+
+# Montros mostrados con . 
+USE_THOUSAND_SEPARATOR = True
+THOUSAND_SEPARATOR = "."
+USE_L10N = True
 
 
 # Static files (CSS, JavaScript, Images)

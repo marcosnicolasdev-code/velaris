@@ -4,8 +4,17 @@ class Tratamiento(models.Model):
  nombre_tratamiento = models.CharField(max_length=100, null=True, blank=True)
  duracion_tratamiento = models.DurationField() 
  sesion_tratamiento = models.SmallIntegerField(default=1)
- def __str__(self): return str(self.nombre_tratamiento)
+ precio_total = models.IntegerField(default=0)
+ requiere_plan = models.BooleanField(default=False)
 
+ def __str__(self): 
+   return str(self.nombre_tratamiento)
+
+ @property
+ def precio_por_sesion(self):
+      if self.sesion_tratamiento > 0:
+        return round(self.precio_total / self.sesion_tratamiento) # Redondea la cuota por sesión  
+      return self.precio_total
 class PlanPago(models.Model):
   METODO_PAGO_CHOICES= [
     ('efectivo', 'Efectivo'),

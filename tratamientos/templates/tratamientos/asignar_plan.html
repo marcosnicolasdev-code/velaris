@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block titulo %}Asignar tratamiento — Velaris{% endblock %}
+{% block contenido %}
+  <h1>Asignar tratamiento a {{ paciente.nombre_paciente }} {{ paciente.apellido_paciente }}</h1>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="alert alert-danger">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Asignar</button>
+    <a href="{% url 'paciente_detalle' paciente.dni %}" class="btn btn-secondary">Cancelar</a>
+  </form>
+{% endblock %}

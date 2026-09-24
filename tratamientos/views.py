@@ -1,7 +1,10 @@
 from django.shortcuts import render,redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .models import Tratamiento 
-from .forms import TratamientoForm 
+from django.contrib import messages
+from pacientes.models import Paciente
+from .models import Tratamiento, PlanPago
+from .forms import TratamientoForm, AsignarPlanForm
+
 @login_required 
 def tratamiento_lista (request): 
     tratamientos = Tratamiento.objects.all()
@@ -10,8 +13,8 @@ def tratamiento_lista (request):
 def tratamiento_crear(request): 
     if request.method == "POST": 
         form = TratamientoForm(request.POST)
-    if form.is_valid(): 
-        form.save()
+        if form.is_valid(): 
+            form.save()
         return redirect("tratamiento_lista")
     else:
         form = TratamientoForm()
@@ -21,8 +24,8 @@ def tratamiento_editar(request,id):
     tratamiento = get_object_or_404(Tratamiento,id_tratamiento=id)
     if request.method == "POST":
         form = TratamientoForm (request.POST,instance=tratamiento)
-    if form.is_valid():
-        form.save()
+        if form.is_valid():
+            form.save()
         return redirect("tratamiento_lista")
     else:
         form = TratamientoForm(instance=tratamiento)
@@ -103,3 +106,38 @@ def sesion_borrar(request,id_sesion):
         sesion.delete()
         return redirect("sesion_lista")
     return render(request,"tratamientos/sesion_confirmar_borrar.html",{"sesion": sesion})
+
+
+# ASIGNACION DE TRATAMIENTOS POR PARTE DEL MEDICO
+@login_required
+def asignar_plan(request, dni):
+    paciente = get_object_or_404(Paciente, dni=dni)
+
+    if request.method == "POST":
+        form = AsignarPlanForm(request.POST)
+        if form.is_valid():
+            plan = form.save(commit=False)
+            plan.dni = paciente
+
+            # Lo siguiente evita que tenga un plan activo del mismo tratamiento
+            ya_tiene = PlanPago.objects.filter(
+                dni=paciente,
+                tratamiento=plan.tratamiento,
+                estado="activo",
+            ).exists()
+
+            if ya_tiene:
+                messages.error(request, "El paciente ya tiene un plan activo de ese tratamiento")
+                return render(request, "tratamientos/asignar_plan.html", {"form": form, "paciente": paciente})
+
+            # El sistema copmpleta los datos desde el tratamiento
+            plan.sesiones_total = plan.tratamiento.sesion_tratamiento
+            plan.valor_sesion = plan.tratamiento.precio_por_sesion
+            plan.save()
+            return redirect ("paciente_detalle", dni=paciente.dni)
+
+    else:
+            form = AsignarPlanForm()
+
+    return render(request, "tratamientos/asignar_plan.html", {"form": form, "paciente": paciente})
+    

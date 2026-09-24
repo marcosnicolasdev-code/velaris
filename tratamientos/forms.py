@@ -16,4 +16,12 @@ class SesionForm(forms.ModelForm):
         fields = ["numero_sesion","duracion_sesion", 'estado_pago']
 
 
+class AsignarPlanForm(forms.ModelForm):
+    class Meta:
+        model = PlanPago
+        fields = ["tratamiento", "metodo_pago"]
 
+    def __init__(self, *args, **kwargs):
+        super(). __init__(*args, **kwargs)
+        # Solo se muestran tratamientos que requieren plan (NTF, PRP, MTC)
+        self.fields["tratamiento"].queryset = Tratamiento.objects.filter(requiere_plan=True)

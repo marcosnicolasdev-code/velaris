@@ -20,4 +20,7 @@ path("sesiones/nuevo/", views.sesion_crear, name="sesion_crear"),
 path("sesiones/<int:id_sesion>/editar", views.sesion_editar, name="sesion_editar"),
 path("sesiones/<int:id_sesion>/borrar", views.sesion_borrar, name="sesion_borrar"),
 
+
+#-----------Asignacion de tratamiento--------
+path("asignar/<str:dni>/", views.asignar_plan, name="asignar_plan"),
 ]

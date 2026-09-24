@@ -4,12 +4,15 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.utils import timezone
 from django.http import JsonResponse
+from django.db import transaction
+
 import unicodedata
 import re
 
 from .models import Paciente, Evolucion, Turno
 from .forms import PacienteForm, TurnoForm, AgendarTurnoForm
 from usuarios.models import Profesional
+from tratamientos.models import Tratamiento, PlanPago
 
 # READ  (El Listado y Buscador)
 @login_required
@@ -48,6 +51,8 @@ def paciente_lista(request):
 @login_required
 def paciente_detalle(request, dni):
     paciente = get_object_or_404(Paciente, dni=dni)
+    turnos = Turno.objects.filter(paciente=paciente).order_by("-fecha_asistencia")
+    planes = PlanPago.objects.filter(dni=paciente, estado="activo")
     historia = paciente.get_historia_clinica()
     evoluciones = (
         historia.evoluciones
@@ -91,6 +96,7 @@ def paciente_detalle(request, dni):
         "pacientes/paciente_detalle.html",
         {
             "paciente": paciente,
+            "turnos": turnos,
             "historia": historia,
             "evoluciones": evoluciones,
             "puede_crear_privada": puede_crear_privada,
@@ -346,6 +352,28 @@ def turno_editar(request, dni, turno_id):
     else:
         form = TurnoForm(instance=turno)
     return render(request, "pacientes/turno_form.html", {"paciente": paciente, "form": form})
+
+@login_required
+def finalizar_turno(request, dni, turno_id):
+    paciente = get_object_or_404(Paciente, dni=dni)
+    turno = get_object_or_404(Turno, id=turno_id, paciente=paciente)
+
+    if request.method == "POST":
+        with transaction.atomic():
+            turno.estado = "finalizado"
+            turno.save()
+
+            # si el turno es de un plan, descontar una sesión
+            if turno.plan:
+                plan = turno.plan
+                plan.sesiones_consumidas += 1
+                if plan.sesiones_consumidas >= plan.sesiones_total:
+                    plan.estado = "completado"
+                plan.save()
+
+        return redirect("paciente_detalle", dni=paciente.dni)
+
+    return render(request, "pacientes/finalizar_turno.html", {"turno": turno, "paciente": paciente})
 
 #DELETE
 @login_required

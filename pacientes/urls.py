@@ -18,6 +18,7 @@ urlpatterns = [
     path("pacientes/<str:dni>/turno/nuevo/", views.turno_crear, name="turno_crear"),
     path("pacientes/<str:dni>/turno/<int:turno_id>/editar/", views.turno_editar, name="turno_editar"),
     path("pacientes/<str:dni>/turno/<int:turno_id>/borrar/", views.turno_borrar, name="turno_borrar"),
+    path("pacientes/<str:dni>/turno/<int:turno_id>/finalizar/", views.finalizar_turno, name="finalizar_turno"),
 
 # AGENDA
     path("agenda/", views.agenda, name="agenda"),

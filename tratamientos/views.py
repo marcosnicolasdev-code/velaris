@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from pacientes.models import Paciente
 from .models import Tratamiento, PlanPago
-from .forms import TratamientoForm, AsignarPlanForm
+from .forms import TratamientoForm, AsignarPlanForm, SesionForm, PlanPagoForm
 
 @login_required 
 def tratamiento_lista (request): 

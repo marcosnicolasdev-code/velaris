@@ -4,10 +4,43 @@
 
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="mb-0">{{ paciente.apellido_paciente }}, {{ paciente.nombre_paciente }}</h1>
-    <a href="{% url 'turno_crear' paciente.dni %}" class="btn btn-primary">Nuevo turno</a>
     <a href="{% url 'asignar_plan' paciente.dni %}" class="btn btn-primary">Asignar tratamiento</a>
     <a href="{% url 'paciente_editar' paciente.dni %}" class="btn btn-warning">Editar</a>
   </div>
+
+  <h3 class="mt-4">Turnos</h3>
+  <a href="{% url 'agendar_turno' paciente.dni %}" class="btn btn-primary mb-3">Agendar turno</a>
+
+<table class="table table-striped">
+  <thead>
+    <tr><th>Fecha</th><th>Prestación</th><th>Estado</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for turno in turnos %}
+      <tr>
+        <td>{{ turno.fecha_asistencia|date:"d/m/Y H:i" }}</td>
+        <td>{{ turno.tratamiento }}</td>
+        <td>{{ turno.get_estado_display }}</td>
+        <td>
+          {% if turno.estado == "asignado" %}
+            <a href="{% url 'finalizar_turno' paciente.dni turno.id %}" class="btn btn-sm btn-success">Finalizar</a>
+          {% endif %}
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="4">Este paciente no tiene turnos.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h3 class="mt-4">Tratamientos en curso</h3>
+<ul>
+  {% for plan in planes %}
+    <li>{{ plan.tratamiento }} — {{ plan.sesiones_restantes }} sesiones restantes</li>
+  {% empty %}
+    <li>Sin tratamientos activos.</li>
+  {% endfor %}
+</ul>
 
   <ul class="list-group mb-3">
     <li class="list-group-item"><b>DNI:</b> {{ paciente.dni }}</li>

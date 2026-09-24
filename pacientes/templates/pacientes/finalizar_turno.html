@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block titulo %}Finalizar turno — Velaris{% endblock %}
+{% block contenido %}
+  <h1>¿Finalizar este turno?</h1>
+  <p>{{ turno.paciente }} — {{ turno.tratamiento }} — {{ turno.fecha_asistencia }}</p>
+  {% if turno.plan %}
+    <p class="text-muted">Se descontará una sesión de {{ turno.plan.tratamiento }}
+       (quedan {{ turno.plan.sesiones_restantes }}).</p>
+  {% endif %}
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-success">Sí, finalizar</button>
+    <a href="{% url 'paciente_detalle' turno.paciente.dni %}" class="btn btn-secondary">Cancelar</a>
+  </form>
+{% endblock %}

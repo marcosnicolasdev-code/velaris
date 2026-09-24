@@ -8,7 +8,7 @@ import unicodedata
 import re
 
 from .models import Paciente, Evolucion, Turno
-from .forms import PacienteForm, TurnoForm
+from .forms import PacienteForm, TurnoForm, AgendarTurnoForm
 from usuarios.models import Profesional
 
 # READ  (El Listado y Buscador)
@@ -309,6 +309,22 @@ def turno_crear(request, dni):
         form = TurnoForm()
     return render(request, "pacientes/turno_form.html", {"paciente": paciente, "form": form})
 
+@login_required
+def agendar_turno(request, dni):
+    paciente = get_object_or_404(Paciente, dni=dni)
+    if request.method == "POST":
+        form = AgendarTurnoForm(request.POST, paciente=paciente)
+        if form.is_valid():
+            turno = form.save(commit=False)
+            turno.paciente = paciente
+            # si eligió un plan, el tratamiento sale del plan
+            if turno.plan:
+                turno.tratamiento = turno.plan.tratamiento
+            turno.save()
+            return redirect("paciente_detalle", dni=paciente.dni)
+    else:
+        form = AgendarTurnoForm(paciente=paciente)
+    return render(request, "pacientes/agendar_turno.html", {"form": form, "paciente": paciente})
 
 #READ
 @login_required
@@ -357,3 +373,4 @@ def turnos_json(request):
             "start": turno.fecha_asistencia.isoformat(),
         })
     return JsonResponse (eventos, safe=False)
+

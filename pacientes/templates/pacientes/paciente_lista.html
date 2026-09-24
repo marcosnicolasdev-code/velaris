@@ -24,8 +24,7 @@
           <td>{{ p.apellido_paciente }}</td>
           <td>
             <a href="{% url 'paciente_detalle' p.dni %}" class="btn btn-sm btn-info">Historia Clinica</a>
-            <a href="{% url 'turno_crear' p.dni %}"  class="btn btn-sm btn-primary">Agendar turno</a>
-          </td>
+            <a href="{% url 'agendar_turno' p.dni %}" class="btn btn-primary">Agendar turno</a>          </td>
         </tr>
       {% empty %}
         <tr><td colspan="4">No se encontraron pacientes.</td></tr>

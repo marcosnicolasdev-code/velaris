@@ -50,6 +50,11 @@ class Turno(models.Model):
         AUSENTE = "ausente", "Ausente"
         CANCELADO = "cancelado", "Cancelado"
 
+    plan = models.ForeignKey(
+        "tratamientos.PlanPago",
+        on_delete=models.PROTECT,
+        null=True, blank=True,
+    )
     paciente = models.ForeignKey(Paciente, on_delete=models.PROTECT)
     tratamiento = models.ForeignKey(
         "tratamientos.Tratamiento",

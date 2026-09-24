@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block titulo %}Agendar turno — Velaris{% endblock %}
+{% block contenido %}
+  <h1>Agendar turno para {{ paciente.nombre_paciente }} {{ paciente.apellido_paciente }}</h1>
+  <p class="text-muted">Elegí una consulta O un tratamiento en curso (no ambos).</p>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Agendar</button>
+    <a href="{% url 'paciente_detalle' paciente.dni %}" class="btn btn-secondary">Cancelar</a>
+  </form>
+{% endblock %}

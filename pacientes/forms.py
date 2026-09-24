@@ -1,5 +1,6 @@
 from django import forms
 from .models import Paciente, Turno 
+from tratamientos.models import Tratamiento, PlanPago
 
 class PacienteForm(forms.ModelForm):
 
@@ -61,3 +62,34 @@ class TurnoForm(forms.ModelForm):
         widgets = {
             "fecha_asistencia": forms.DateInput(attrs={"class": "form-control", "type": "datetime-local"}),
         }
+
+class AgendarTurnoForm(forms.ModelForm):
+    class Meta:
+        model = Turno
+        fields = ["tratamiento", "plan", "fecha_asistencia"]
+        widgets = {
+            "fecha_asistencia": forms.DateTimeInput(attrs={"type": "datetime-local"}),
+        }
+
+    def clean(self):
+        cleaned = super().clean()
+        tratamiento = cleaned.get("tratamiento")
+        plan = cleaned.get("plan")
+
+        if not tratamiento and not plan:
+            raise forms.ValidationError("Elija una consulta o un tratamiento.")
+        if tratamiento and plan:
+            raise forms.ValidationError("Elija solo una opción, no ambas.")
+        return cleaned
+    
+    def __init__(self, *args, paciente=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        # consultas sueltas (no requieren plan)
+        self.fields["tratamiento"].queryset = Tratamiento.objects.filter(requiere_plan=False)
+        self.fields["tratamiento"].required = False
+        # planes activos del paciente con sesiones restantes
+        if paciente:
+            self.fields["plan"].queryset = PlanPago.objects.filter(
+                dni=paciente, estado="activo"
+            )
+        self.fields["plan"].required = False

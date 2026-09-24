@@ -22,4 +22,5 @@ urlpatterns = [
 # AGENDA
     path("agenda/", views.agenda, name="agenda"),
     path("agenda/turnos.json", views.turnos_json, name="turnos_json"),
+    path("pacientes/<str:dni>/agendar/", views.agendar_turno, name="agendar_turno"),
     ]

@@ -77,6 +77,10 @@
                 initialView: 'dayGridMonth',
                 locale: 'es',
                 firstDay: 1,
+                slotMinTime: '08:00:00',
+                slotMaxTime: '19:30:00',
+                slotLabelInterval: '00:30:00',
+                slotLabelFormat: { hour: 'numeric', minute: '2-digit', hour12: false },
                 height: 'auto',
                 headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
                 events: function (info, success, failure) {

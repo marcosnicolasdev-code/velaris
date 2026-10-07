@@ -80,13 +80,23 @@
                 headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
                 events: function (info, success, failure) {
                     const params = new URLSearchParams({ categoria: categorySelect.value, start: info.startStr, end: info.endStr });
-                    fetch('{% url "turnos_json" %}?' + params.toString())
-                        .then(response => response.json())
-                        .then(success)
+                    const disponibilidadParams = new URLSearchParams({ start: info.startStr, end: info.endStr });
+                    Promise.all([
+                        fetch('{% url "turnos_json" %}?' + params.toString()).then(response => response.json()),
+                        fetch('{% url "agenda_disponibilidad_json" %}?' + disponibilidadParams.toString()).then(response => response.json())
+                    ])
+                        .then(([turnos, disponibilidad]) => {
+                            const resumenes = disponibilidad.filter(evento =>
+                                evento.extendedProps.resumenTratamiento &&
+                                (categorySelect.value === 'todas' || evento.extendedProps.categoria === categorySelect.value)
+                            );
+                            success([...turnos, ...resumenes]);
+                        })
                         .catch(failure);
                 },
                 eventClick: function (info) {
                     const props = info.event.extendedProps;
+                    if (props.resumenTratamiento) return;
                     const setText = (id, value) => document.getElementById(id).textContent = value || 'Sin nota';
                     setText('detalle-paciente', props.apellido + ', ' + props.nombre);
                     setText('detalle-dni', props.dni);

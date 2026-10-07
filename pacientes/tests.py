@@ -332,7 +332,7 @@ class AgendaAvailabilityTests(TestCase):
         self.assertIn("Sofía", ocupados[0]["title"])
         self.assertIn("Asignado", ocupados[0]["title"])
 
-    def test_calendario_sin_tratamiento_muestra_resumen_por_categoria(self):
+    def test_calendario_sin_tratamiento_muestra_disponibilidad_por_tratamiento_y_categoria(self):
         usuario = User.objects.create_user(username="recepcion_resumen", password="secret123")
         grupo, _ = Group.objects.get_or_create(name="Recepcionista")
         usuario.groups.add(grupo)
@@ -351,12 +351,27 @@ class AgendaAvailabilityTests(TestCase):
 
         self.assertEqual(respuesta.status_code, 200)
         eventos = respuesta.json()
-        resumenes = [evento for evento in eventos if evento["extendedProps"].get("resumenCategoria")]
+        resumenes = [evento for evento in eventos if evento["extendedProps"].get("resumenTratamiento")]
+        resumenes_categoria = [evento for evento in eventos if evento["extendedProps"].get("resumenCategoria")]
         self.assertTrue(resumenes)
-        categorias = {evento["extendedProps"]["categoria"] for evento in resumenes}
-        self.assertIn(Tratamiento.AgendaCategoria.CONSULTORIO, categorias)
-        self.assertIn(Tratamiento.AgendaCategoria.NTF, categorias)
-        self.assertIn(Tratamiento.AgendaCategoria.PRP, categorias)
+        self.assertTrue(resumenes_categoria)
+        tratamientos_resumidos = {evento["extendedProps"]["tratamientoId"] for evento in resumenes}
+        tratamientos_agendables = set(
+            Tratamiento.objects.filter(
+                agenda_categoria__in=[
+                    Tratamiento.AgendaCategoria.CONSULTORIO,
+                    Tratamiento.AgendaCategoria.MTC,
+                    Tratamiento.AgendaCategoria.NTF,
+                    Tratamiento.AgendaCategoria.PRP,
+                ]
+            ).values_list("pk", flat=True)
+        )
+        self.assertSetEqual(tratamientos_resumidos, tratamientos_agendables)
+        self.assertEqual(len(resumenes), len(tratamientos_agendables) * 7)
+        categorias_resumidas = {evento["extendedProps"]["categoria"] for evento in resumenes_categoria}
+        self.assertIn(Tratamiento.AgendaCategoria.CONSULTORIO, categorias_resumidas)
+        self.assertIn(Tratamiento.AgendaCategoria.NTF, categorias_resumidas)
+        self.assertIn(Tratamiento.AgendaCategoria.PRP, categorias_resumidas)
 
     def test_cancelar_conserva_el_turno_y_libera_su_bloque(self):
         usuario = User.objects.create_user(username="recepcion_cancel", password="secret123")

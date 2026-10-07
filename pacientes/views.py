@@ -718,10 +718,10 @@ def agenda_disponibilidad_json(request):
     fecha_actual = desde
     while fecha_actual < hasta:
         for categoria in categorias:
-            tratamientos = Tratamiento.objects.filter(agenda_categoria=categoria)
+            tratamientos = Tratamiento.objects.filter(agenda_categoria=categoria).order_by("nombre_tratamiento")
             if not tratamientos.exists():
                 continue
-            libres_dia = 0
+            libres_categoria = 0
             for tratamiento in tratamientos:
                 duracion = tratamiento.duracion_tratamiento
                 dia = fecha_actual.weekday()
@@ -753,6 +753,7 @@ def agenda_disponibilidad_json(request):
                         while cursor + duracion <= fin_jornada:
                             inicios.append(cursor.time())
                             cursor += duracion
+                libres_dia = 0
                 for inicio_hora in inicios:
                     inicio = timezone.make_aware(datetime.combine(fecha_actual, inicio_hora), timezone.get_current_timezone())
                     fin = inicio + duracion
@@ -766,8 +767,24 @@ def agenda_disponibilidad_json(request):
                     )
                     if not ocupados.exists():
                         libres_dia += 1
+                libres_categoria += libres_dia
+                eventos.append({
+                    "title": f"{tratamiento.nombre_tratamiento}: {libres_dia} disponibles",
+                    "start": fecha_actual.isoformat(),
+                    "allDay": True,
+                    "backgroundColor": "transparent",
+                    "borderColor": "transparent",
+                    "textColor": "#24583a",
+                    "extendedProps": {
+                        "disponible": False,
+                        "resumenTratamiento": True,
+                        "categoria": categoria,
+                        "tratamientoId": tratamiento.pk,
+                        "cantidadDisponible": libres_dia,
+                    },
+                })
             eventos.append({
-                "title": f"{etiquetas[categoria]}: {libres_dia} disponibles",
+                "title": f"{etiquetas[categoria]}: {libres_categoria} disponibles",
                 "start": fecha_actual.isoformat(),
                 "allDay": True,
                 "backgroundColor": "transparent",
@@ -777,7 +794,7 @@ def agenda_disponibilidad_json(request):
                     "disponible": False,
                     "resumenCategoria": True,
                     "categoria": categoria,
-                    "cantidadDisponible": libres_dia,
+                    "cantidadDisponible": libres_categoria,
                 },
             })
         fecha_actual += timedelta(days=1)

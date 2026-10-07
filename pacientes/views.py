@@ -12,7 +12,7 @@ from django.urls import reverse
 import unicodedata
 import re
 
-from .models import Paciente, Evolucion, Turno
+from .models import Paciente, Evolucion, NotaAgenda, Turno
 from .forms import (
     PacienteForm,
     TurnoForm,
@@ -24,30 +24,31 @@ from usuarios.models import Profesional
 from tratamientos.models import Tratamiento, PlanPago
 
 # READ  (El Listado y Buscador)
+def _normalizar_busqueda(texto):
+    return "".join(
+        caracter
+        for caracter in unicodedata.normalize("NFD", texto.lower())
+        if unicodedata.category(caracter) != "Mn"
+    ).encode("ascii", "ignore").decode("ascii")
+
+
+def _filtrar_pacientes_por_busqueda(pacientes, consulta):
+    busqueda = _normalizar_busqueda(consulta)
+    if not busqueda:
+        return pacientes
+    return [
+        paciente
+        for paciente in pacientes
+        if busqueda in _normalizar_busqueda(paciente.dni)
+        or busqueda in _normalizar_busqueda(paciente.nombre_paciente)
+        or busqueda in _normalizar_busqueda(paciente.apellido_paciente)
+    ]
+
+
 @login_required
 def paciente_lista(request):
     q = request.GET.get("q", "").strip()
-    pacientes = Paciente.objects.all()
-
-    if q:
-        busqueda = "".join(
-            caracter
-            for caracter in unicodedata.normalize("NFD", q.lower())
-            if unicodedata.category(caracter) != "Mn"
-        )
-
-        pacientes = [
-            paciente for paciente in pacientes
-            if busqueda in unicodedata.normalize(
-                "NFD", paciente.dni.lower()
-            ).encode("ascii", "ignore").decode()
-            or busqueda in unicodedata.normalize(
-                "NFD", paciente.nombre_paciente.lower()
-            ).encode("ascii", "ignore").decode()
-            or busqueda in unicodedata.normalize(
-                "NFD", paciente.apellido_paciente.lower()
-            ).encode("ascii", "ignore").decode()
-        ]
+    pacientes = _filtrar_pacientes_por_busqueda(Paciente.objects.all(), q)
 
     return render(
         request,
@@ -552,6 +553,70 @@ def turnos_json(request):
     return JsonResponse (eventos, safe=False)
 
 
+@login_required
+def agenda_notas(request):
+    if not _puede_gestionar_agenda(request.user):
+        raise PermissionDenied
+
+    if request.method == "GET":
+        try:
+            desde = date.fromisoformat(request.GET["start"][:10])
+            hasta = date.fromisoformat(request.GET["end"][:10])
+        except (KeyError, ValueError):
+            return JsonResponse({"error": "Se requiere un rango de fechas válido."}, status=400)
+
+        eventos = []
+        for nota in NotaAgenda.objects.filter(fecha__gte=desde, fecha__lt=hasta).order_by("fecha", "id"):
+            usuario = nota.usuario.get_username() if nota.usuario_id else "Usuario desconocido"
+            eventos.append({
+                "id": f"nota-agenda-{nota.pk}",
+                "title": f"{usuario}: {nota.texto}",
+                "start": nota.fecha.isoformat(),
+                "allDay": True,
+                "backgroundColor": "#fff1c2",
+                "borderColor": "#d8b248",
+                "textColor": "#5e4b12",
+                "classNames": ["agenda-nota-del-dia"],
+                "extendedProps": {
+                    "notaAgenda": True,
+                    "notaId": nota.pk,
+                    "fecha": nota.fecha.isoformat(),
+                    "texto": nota.texto,
+                    "usuario": usuario,
+                },
+            })
+        return JsonResponse(eventos, safe=False)
+
+    if request.method != "POST":
+        return JsonResponse({"error": "Método no permitido."}, status=405)
+
+    try:
+        fecha = date.fromisoformat(request.POST.get("fecha", ""))
+    except ValueError:
+        return JsonResponse({"error": "La fecha no es válida."}, status=400)
+
+    texto = request.POST.get("texto", "").strip()
+    nota_id = request.POST.get("nota_id")
+    if len(texto) > 1000:
+        return JsonResponse({"error": "La nota no puede superar los 1000 caracteres."}, status=400)
+    if nota_id:
+        nota = get_object_or_404(NotaAgenda, pk=nota_id, fecha=fecha)
+        if texto:
+            nota.texto = texto
+            campos_actualizados = ["texto", "actualizado_en"]
+            if not nota.usuario_id:
+                nota.usuario = request.user
+                campos_actualizados.append("usuario")
+            nota.save(update_fields=campos_actualizados)
+        else:
+            nota.delete()
+    elif texto:
+        if NotaAgenda.objects.filter(fecha=fecha).count() >= 3:
+            return JsonResponse({"error": "Ya hay tres notas para este día."}, status=400)
+        NotaAgenda.objects.create(fecha=fecha, texto=texto, usuario=request.user)
+    return JsonResponse({"ok": True, "eliminada": not texto, "nota_id": nota_id or None})
+
+
 def _puede_gestionar_agenda(usuario):
     grupos = {
         unicodedata.normalize("NFKD", nombre or "")
@@ -561,7 +626,11 @@ def _puede_gestionar_agenda(usuario):
         .lower()
         for nombre in usuario.groups.values_list("name", flat=True)
     }
-    return usuario.is_superuser or bool(grupos & {"recepcionista", "ceo"})
+    return (
+        usuario.is_superuser
+        or usuario.is_staff
+        or bool(grupos & {"recepcionista", "administrativo", "medico", "ceo"})
+    )
 
 
 def _color_estado_turno(estado):
@@ -572,6 +641,80 @@ def _color_estado_turno(estado):
         Turno.Estado.AUSENTE: "#bd4a43",
         Turno.Estado.CANCELADO: "#6c757d",
     }.get(estado, "#3667a6")
+
+
+@login_required
+def agenda_pacientes_disponibles_json(request):
+    if not _puede_gestionar_agenda(request.user):
+        raise PermissionDenied
+
+    tratamiento = get_object_or_404(Tratamiento, pk=request.GET.get("tratamiento"))
+    consulta = request.GET.get("q", "").strip()
+    if not consulta:
+        return JsonResponse([], safe=False)
+
+    pacientes = Paciente.objects.order_by("apellido_paciente", "nombre_paciente")
+    if tratamiento.agenda_categoria != Tratamiento.AgendaCategoria.CONSULTORIO:
+        pacientes_indicados = Evolucion.objects.filter(
+            tratamiento_indicado=tratamiento,
+        ).values_list("historia_clinica__paciente_id", flat=True)
+        pacientes = pacientes.filter(pk__in=pacientes_indicados)
+
+    resultados = _filtrar_pacientes_por_busqueda(pacientes, consulta)[:30]
+    return JsonResponse(
+        [
+            {
+                "dni": paciente.dni,
+                "nombre": paciente.nombre_paciente,
+                "apellido": paciente.apellido_paciente,
+                "telefono": paciente.telefono,
+            }
+            for paciente in resultados
+        ],
+        safe=False,
+    )
+
+
+@login_required
+def agenda_asignar_turno_disponible(request):
+    if not _puede_gestionar_agenda(request.user):
+        raise PermissionDenied
+    if request.method != "POST":
+        return JsonResponse({"error": "Método no permitido."}, status=405)
+
+    paciente = get_object_or_404(Paciente, dni=request.POST.get("dni"))
+    tratamiento = get_object_or_404(Tratamiento, pk=request.POST.get("tratamiento"))
+    indicacion = None
+    if tratamiento.agenda_categoria != Tratamiento.AgendaCategoria.CONSULTORIO:
+        indicacion = Evolucion.objects.filter(
+            historia_clinica__paciente=paciente,
+            tratamiento_indicado=tratamiento,
+        ).order_by("-fecha_evolucion", "-id").first()
+        if not indicacion:
+            return JsonResponse(
+                {"error": "El paciente no tiene indicado este tratamiento o cirugía."},
+                status=400,
+            )
+
+    form = AgendarTurnoForm(
+        {
+            "tratamiento": tratamiento.pk,
+            "fecha_asistencia": request.POST.get("fecha_asistencia", ""),
+            "estado": Turno.Estado.ASIGNADO,
+            "nota": "",
+        },
+        paciente=paciente,
+    )
+    if not form.is_valid():
+        errores = [str(error) for errores_campo in form.errors.values() for error in errores_campo]
+        return JsonResponse({"error": " ".join(errores)}, status=400)
+
+    turno = form.save(commit=False)
+    turno.paciente = paciente
+    turno.indicacion_medica = form.cleaned_data.get("indicacion_medica") or indicacion
+    turno.plan = form.cleaned_data.get("plan")
+    turno.save()
+    return JsonResponse({"ok": True, "turnoId": turno.pk}, status=201)
 
 
 @login_required
@@ -784,7 +927,7 @@ def agenda_disponibilidad_json(request):
                         libres_dia += 1
                         if modo_agenda:
                             eventos.append({
-                                "title": f"{tratamiento.nombre_tratamiento} · Disponible · {inicio.strftime('%H:%M')}",
+                                "title": tratamiento.nombre_tratamiento or "Disponible",
                                 "start": inicio.isoformat(),
                                 "end": fin.isoformat(),
                                 "backgroundColor": "#dcefe4",
@@ -794,6 +937,7 @@ def agenda_disponibilidad_json(request):
                                     "disponible": True,
                                     "categoria": categoria,
                                     "tratamientoId": tratamiento.pk,
+                                    "tratamientoNombre": tratamiento.nombre_tratamiento,
                                 },
                             })
                 libres_categoria += libres_dia

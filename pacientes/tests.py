@@ -6,9 +6,97 @@ from django.urls import reverse
 from django.utils import timezone
 
 from pacientes.forms import AgendarTurnoForm
-from pacientes.models import HistoriaClinica, Paciente, Evolucion, Turno
+from pacientes.models import HistoriaClinica, NotaAgenda, Paciente, Evolucion, Turno
 from tratamientos.models import PlanPago, Tratamiento
 from usuarios.models import Profesional
+
+
+class AgendaNotasTests(TestCase):
+    def setUp(self):
+        self.usuario = User.objects.create_user(username="recepcion_notas", password="secret123")
+        grupo, _ = Group.objects.get_or_create(name="Recepcionista")
+        self.usuario.groups.add(grupo)
+        self.client.force_login(self.usuario)
+
+    def test_nota_se_guarda_se_muestra_y_se_puede_eliminar(self):
+        fecha = timezone.localdate() + timedelta(days=5)
+        parametros = {
+            "fecha": fecha.isoformat(),
+            "texto": "Llegada de insumos por la tarde",
+        }
+
+        respuesta = self.client.post(reverse("agenda_notas"), parametros)
+
+        self.assertEqual(respuesta.status_code, 200)
+        nota = NotaAgenda.objects.get(fecha=fecha)
+        self.assertEqual(nota.texto, parametros["texto"])
+        self.assertEqual(nota.usuario, self.usuario)
+        eventos = self.client.get(
+            reverse("agenda_notas"),
+            {"start": fecha.isoformat(), "end": (fecha + timedelta(days=1)).isoformat()},
+        ).json()
+        self.assertEqual(len(eventos), 1)
+        self.assertEqual(eventos[0]["title"], f"{self.usuario.username}: {parametros['texto']}")
+        self.assertEqual(eventos[0]["extendedProps"]["usuario"], self.usuario.username)
+        self.assertTrue(eventos[0]["allDay"])
+
+        otro_usuario = User.objects.create_user(username="recepcion_edita", password="secret123")
+        otro_usuario.groups.add(self.usuario.groups.get(name="Recepcionista"))
+        self.client.force_login(otro_usuario)
+        self.client.post(
+            reverse("agenda_notas"),
+            {"fecha": fecha.isoformat(), "nota_id": nota.pk, "texto": "Insumos recibidos"},
+        )
+        nota.refresh_from_db()
+        self.assertEqual(nota.usuario, self.usuario)
+
+        nota_sin_autor = NotaAgenda.objects.create(
+            fecha=fecha + timedelta(days=1),
+            texto="Nota anterior sin autor",
+        )
+        self.client.post(
+            reverse("agenda_notas"),
+            {
+                "fecha": nota_sin_autor.fecha.isoformat(),
+                "nota_id": nota_sin_autor.pk,
+                "texto": "Nota anterior corregida",
+            },
+        )
+        nota_sin_autor.refresh_from_db()
+        self.assertEqual(nota_sin_autor.usuario, otro_usuario)
+
+        for texto in ("Segunda novedad", "Tercera novedad"):
+            respuesta = self.client.post(
+                reverse("agenda_notas"),
+                {"fecha": fecha.isoformat(), "texto": texto},
+            )
+            self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(NotaAgenda.objects.filter(fecha=fecha).count(), 3)
+        respuesta_cuarta = self.client.post(
+            reverse("agenda_notas"),
+            {"fecha": fecha.isoformat(), "texto": "Cuarta novedad"},
+        )
+        self.assertEqual(respuesta_cuarta.status_code, 400)
+        self.assertEqual(NotaAgenda.objects.filter(fecha=fecha).count(), 3)
+
+        respuesta = self.client.post(
+            reverse("agenda_notas"),
+            {"fecha": fecha.isoformat(), "nota_id": nota.pk, "texto": ""},
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(NotaAgenda.objects.filter(fecha=fecha).count(), 2)
+
+    def test_notas_de_agenda_requiere_permisos_de_gestion(self):
+        usuario = User.objects.create_user(username="usuario_sin_agenda", password="secret123")
+        self.client.force_login(usuario)
+
+        respuesta = self.client.get(
+            reverse("agenda_notas"),
+            {"start": "2026-10-07", "end": "2026-10-08"},
+        )
+
+        self.assertEqual(respuesta.status_code, 403)
 
 
 class EvolucionModelTests(TestCase):
@@ -48,6 +136,36 @@ class EvolucionModelTests(TestCase):
 
 
 class AgendaTurnoEntryTests(TestCase):
+    def test_usuario_administrativo_puede_ingresar_a_agenda(self):
+        usuario = User.objects.create_user(username="administrativo_agenda", password="secret123")
+        grupo, _ = Group.objects.get_or_create(name="Administrativo")
+        usuario.groups.add(grupo)
+        self.client.force_login(usuario)
+
+        respuesta = self.client.get(reverse("agenda"))
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "Agenda de turnos")
+
+    def test_medico_puede_ingresar_a_agenda(self):
+        usuario = User.objects.create_user(username="medico_agenda", password="secret123")
+        grupo, _ = Group.objects.get_or_create(name="Médico")
+        usuario.groups.add(grupo)
+        self.client.force_login(usuario)
+
+        respuesta = self.client.get(reverse("agenda"))
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "Agenda de turnos")
+
+    def test_usuario_sin_rol_no_puede_ingresar_a_agenda(self):
+        usuario = User.objects.create_user(username="sin_rol_agenda", password="secret123")
+        self.client.force_login(usuario)
+
+        respuesta = self.client.get(reverse("agenda"))
+
+        self.assertEqual(respuesta.status_code, 403)
+
     def test_nuevo_turno_permite_buscar_paciente_por_apellido(self):
         usuario = User.objects.create_user(username="recepcion", password="secret123")
         grupo_recepcion, _ = Group.objects.get_or_create(name="Recepcionista")
@@ -411,6 +529,86 @@ class AgendaAvailabilityTests(TestCase):
             evento["extendedProps"]["categoria"] == Tratamiento.AgendaCategoria.NTF
             for evento in eventos
         ))
+
+    def test_busqueda_filtra_por_tratamiento_excepto_consultorio(self):
+        usuario = User.objects.create_user(username="recepcion_busqueda_turno", password="secret123")
+        grupo, _ = Group.objects.get_or_create(name="Recepcionista")
+        usuario.groups.add(grupo)
+        self.client.force_login(usuario)
+        paciente_sin_indicacion = Paciente.objects.create(
+            dni="99887766",
+            nombre_paciente="Mateo",
+            apellido_paciente="Gómez",
+            fecha_nacimiento="1988-04-12",
+            correo_electronico="mateo@example.com",
+            telefono="3415559988",
+        )
+
+        respuesta_ntf = self.client.get(
+            reverse("agenda_pacientes_disponibles_json"),
+            {"tratamiento": self.ntf.pk, "q": "Sofia"},
+        )
+        self.assertEqual(respuesta_ntf.status_code, 200)
+        self.assertEqual([paciente["dni"] for paciente in respuesta_ntf.json()], [self.paciente.dni])
+
+        respuesta_consulta = self.client.get(
+            reverse("agenda_pacientes_disponibles_json"),
+            {"tratamiento": self.consulta.pk, "q": "Mateo"},
+        )
+        self.assertEqual(respuesta_consulta.status_code, 200)
+        self.assertEqual(respuesta_consulta.json()[0]["dni"], paciente_sin_indicacion.dni)
+
+    def test_asignacion_valida_tratamiento_y_permite_consulta_sin_indicacion(self):
+        usuario = User.objects.create_user(username="recepcion_asigna_turno", password="secret123")
+        grupo, _ = Group.objects.get_or_create(name="Recepcionista")
+        usuario.groups.add(grupo)
+        self.client.force_login(usuario)
+        paciente_sin_indicacion = Paciente.objects.create(
+            dni="88776655",
+            nombre_paciente="Lucía",
+            apellido_paciente="Méndez",
+            fecha_nacimiento="1992-09-20",
+            correo_electronico="lucia@example.com",
+            telefono="3415558877",
+        )
+        fecha_asistencia = self.fecha_semana(10)
+
+        respuesta_ntf = self.client.post(
+            reverse("agenda_asignar_turno_disponible"),
+            {
+                "dni": paciente_sin_indicacion.dni,
+                "tratamiento": self.ntf.pk,
+                "fecha_asistencia": fecha_asistencia,
+            },
+        )
+        self.assertEqual(respuesta_ntf.status_code, 400)
+        self.assertFalse(Turno.objects.filter(paciente=paciente_sin_indicacion).exists())
+
+        respuesta_consulta = self.client.post(
+            reverse("agenda_asignar_turno_disponible"),
+            {
+                "dni": paciente_sin_indicacion.dni,
+                "tratamiento": self.consulta.pk,
+                "fecha_asistencia": fecha_asistencia,
+            },
+        )
+        self.assertEqual(respuesta_consulta.status_code, 201, respuesta_consulta.content)
+        turno_consulta = Turno.objects.get(paciente=paciente_sin_indicacion)
+        self.assertEqual(turno_consulta.tratamiento, self.consulta)
+        self.assertEqual(turno_consulta.estado, Turno.Estado.ASIGNADO)
+
+        respuesta_ntf_elegible = self.client.post(
+            reverse("agenda_asignar_turno_disponible"),
+            {
+                "dni": self.paciente.dni,
+                "tratamiento": self.ntf.pk,
+                "fecha_asistencia": fecha_asistencia,
+            },
+        )
+        self.assertEqual(respuesta_ntf_elegible.status_code, 201, respuesta_ntf_elegible.content)
+        turno_ntf = Turno.objects.get(paciente=self.paciente)
+        self.assertEqual(turno_ntf.tratamiento, self.ntf)
+        self.assertEqual(turno_ntf.indicacion_medica, self.indicacion)
 
     def test_cancelar_conserva_el_turno_y_libera_su_bloque(self):
         usuario = User.objects.create_user(username="recepcion_cancel", password="secret123")

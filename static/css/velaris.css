@@ -109,6 +109,21 @@ h1 {
     vertical-align: -0.05rem;
 }
 
+.agenda-nota-agregar {
+    border-style: dashed !important;
+    cursor: pointer;
+}
+
+.agenda-nota-agregar .fc-event-title,
+.agenda-nota-del-dia .fc-event-title {
+    white-space: normal;
+}
+
+.agenda-nota-agregar .fc-event-main {
+    font-weight: 600;
+    text-align: center;
+}
+
 .submenu-item {
     flex: 1 1 0;
     min-width: 0;

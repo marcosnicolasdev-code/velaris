@@ -79,6 +79,22 @@ class Turno(models.Model):
         return f"{self.paciente} - {self.fecha_asistencia}"
 
 
+class NotaAgenda(models.Model):
+    fecha = models.DateField()
+    texto = models.TextField()
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="notas_agenda_creadas",
+    )
+    actualizado_en = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Nota de agenda - {self.fecha}"
+
+
 class Evolucion(models.Model):
     class Tipo(models.TextChoices):
         CONTROL_MTC = "control_mtc", "Control MTC"

@@ -708,6 +708,15 @@ def agenda_disponibilidad_json(request):
         Tratamiento.AgendaCategoria.NTF,
         Tratamiento.AgendaCategoria.PRP,
     ]
+    modo_agenda = request.GET.get("modo") == "agenda"
+    categoria_agenda = request.GET.get("categoria")
+    if categoria_agenda and categoria_agenda != "todas":
+        if categoria_agenda not in categorias:
+            return JsonResponse({"error": "Se requiere una categoría válida."}, status=400)
+        categorias = [categoria_agenda]
+    if modo_agenda:
+        if not categoria_agenda or categoria_agenda == "todas":
+            return JsonResponse({"error": "Se requiere una categoría válida."}, status=400)
     etiquetas = {
         Tratamiento.AgendaCategoria.CONSULTORIO: "Consultorio",
         Tratamiento.AgendaCategoria.MTC: "MTC",
@@ -721,6 +730,13 @@ def agenda_disponibilidad_json(request):
             tratamientos = Tratamiento.objects.filter(agenda_categoria=categoria).order_by("nombre_tratamiento")
             if not tratamientos.exists():
                 continue
+            turnos_ocupados_dia = list(
+                Turno.objects.select_related("tratamiento").filter(
+                    tratamiento__agenda_categoria=categoria,
+                    estado__in=[Turno.Estado.RESERVADO, Turno.Estado.ASIGNADO],
+                    fecha_asistencia__date=fecha_actual,
+                )
+            )
             libres_categoria = 0
             for tratamiento in tratamientos:
                 duracion = tratamiento.duracion_tratamiento
@@ -759,17 +775,47 @@ def agenda_disponibilidad_json(request):
                     fin = inicio + duracion
                     if inicio <= timezone.now():
                         continue
-                    ocupados = Turno.objects.filter(
-                        tratamiento__agenda_categoria=categoria,
-                        estado__in=[Turno.Estado.RESERVADO, Turno.Estado.ASIGNADO],
-                        fecha_asistencia__lt=fin,
-                        fecha_asistencia__gte=inicio,
+                    ocupado = any(
+                        inicio < turno.fecha_asistencia + turno.tratamiento.duracion_tratamiento
+                        and turno.fecha_asistencia < fin
+                        for turno in turnos_ocupados_dia
                     )
-                    if not ocupados.exists():
+                    if not ocupado:
                         libres_dia += 1
+                        if modo_agenda:
+                            eventos.append({
+                                "title": f"{tratamiento.nombre_tratamiento} · Disponible · {inicio.strftime('%H:%M')}",
+                                "start": inicio.isoformat(),
+                                "end": fin.isoformat(),
+                                "backgroundColor": "#dcefe4",
+                                "borderColor": "#77aa89",
+                                "textColor": "#24583a",
+                                "extendedProps": {
+                                    "disponible": True,
+                                    "categoria": categoria,
+                                    "tratamientoId": tratamiento.pk,
+                                },
+                            })
                 libres_categoria += libres_dia
+                if not modo_agenda:
+                    eventos.append({
+                        "title": f"{tratamiento.nombre_tratamiento}: {libres_dia} disponibles",
+                        "start": fecha_actual.isoformat(),
+                        "allDay": True,
+                        "backgroundColor": "transparent",
+                        "borderColor": "transparent",
+                        "textColor": "#24583a",
+                        "extendedProps": {
+                            "disponible": False,
+                            "resumenTratamiento": True,
+                            "categoria": categoria,
+                            "tratamientoId": tratamiento.pk,
+                            "cantidadDisponible": libres_dia,
+                        },
+                    })
+            if not modo_agenda:
                 eventos.append({
-                    "title": f"{tratamiento.nombre_tratamiento}: {libres_dia} disponibles",
+                    "title": f"{etiquetas[categoria]}: {libres_categoria} disponibles",
                     "start": fecha_actual.isoformat(),
                     "allDay": True,
                     "backgroundColor": "transparent",
@@ -777,26 +823,11 @@ def agenda_disponibilidad_json(request):
                     "textColor": "#24583a",
                     "extendedProps": {
                         "disponible": False,
-                        "resumenTratamiento": True,
+                        "resumenCategoria": True,
                         "categoria": categoria,
-                        "tratamientoId": tratamiento.pk,
-                        "cantidadDisponible": libres_dia,
+                        "cantidadDisponible": libres_categoria,
                     },
                 })
-            eventos.append({
-                "title": f"{etiquetas[categoria]}: {libres_categoria} disponibles",
-                "start": fecha_actual.isoformat(),
-                "allDay": True,
-                "backgroundColor": "transparent",
-                "borderColor": "transparent",
-                "textColor": "#24583a",
-                "extendedProps": {
-                    "disponible": False,
-                    "resumenCategoria": True,
-                    "categoria": categoria,
-                    "cantidadDisponible": libres_categoria,
-                },
-            })
         fecha_actual += timedelta(days=1)
     return JsonResponse(eventos, safe=False)
 

@@ -373,6 +373,45 @@ class AgendaAvailabilityTests(TestCase):
         self.assertIn(Tratamiento.AgendaCategoria.NTF, categorias_resumidas)
         self.assertIn(Tratamiento.AgendaCategoria.PRP, categorias_resumidas)
 
+    def test_agenda_filtrada_muestra_resumenes_y_horarios_de_categoria(self):
+        usuario = User.objects.create_user(username="recepcion_agenda_filtrada", password="secret123")
+        grupo, _ = Group.objects.get_or_create(name="Recepcionista")
+        usuario.groups.add(grupo)
+        self.client.force_login(usuario)
+        fecha = timezone.localdate() + timedelta(days=7)
+        while fecha.weekday() > 4:
+            fecha += timedelta(days=1)
+        parametros = {
+            "categoria": Tratamiento.AgendaCategoria.NTF,
+            "start": fecha.isoformat(),
+            "end": (fecha + timedelta(days=7)).isoformat(),
+        }
+
+        respuesta_resumen = self.client.get(reverse("agenda_disponibilidad_json"), parametros)
+
+        self.assertEqual(respuesta_resumen.status_code, 200)
+        resumenes = [
+            evento for evento in respuesta_resumen.json()
+            if evento["extendedProps"].get("resumenTratamiento")
+        ]
+        self.assertTrue(resumenes)
+        self.assertTrue(all(
+            evento["extendedProps"]["categoria"] == Tratamiento.AgendaCategoria.NTF
+            for evento in resumenes
+        ))
+        parametros["modo"] = "agenda"
+
+        respuesta = self.client.get(reverse("agenda_disponibilidad_json"), parametros)
+
+        self.assertEqual(respuesta.status_code, 200)
+        eventos = respuesta.json()
+        self.assertTrue(eventos)
+        self.assertTrue(all(evento["extendedProps"].get("disponible") for evento in eventos))
+        self.assertTrue(all(
+            evento["extendedProps"]["categoria"] == Tratamiento.AgendaCategoria.NTF
+            for evento in eventos
+        ))
+
     def test_cancelar_conserva_el_turno_y_libera_su_bloque(self):
         usuario = User.objects.create_user(username="recepcion_cancel", password="secret123")
         grupo, _ = Group.objects.get_or_create(name="Recepcionista")

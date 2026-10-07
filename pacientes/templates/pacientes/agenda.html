@@ -72,6 +72,7 @@
             const modal = new bootstrap.Modal(modalElement);
             const stateForm = document.getElementById('turno-estado-form');
             const rescheduleLink = document.getElementById('turno-reagendar');
+            let activeViewType = 'dayGridMonth';
             const calendar = new FullCalendar.Calendar(document.getElementById('calendario'), {
                 initialView: 'dayGridMonth',
                 locale: 'es',
@@ -79,24 +80,41 @@
                 height: 'auto',
                 headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
                 events: function (info, success, failure) {
-                    const params = new URLSearchParams({ categoria: categorySelect.value, start: info.startStr, end: info.endStr });
+                    const categoria = categorySelect.value;
+                    const params = new URLSearchParams({ categoria, start: info.startStr, end: info.endStr });
                     const disponibilidadParams = new URLSearchParams({ start: info.startStr, end: info.endStr });
+                    const filtrada = categoria !== 'todas';
+                    const muestraHorarios = filtrada && ['timeGridWeek', 'timeGridDay'].includes(activeViewType);
+                    if (filtrada) {
+                        disponibilidadParams.set('categoria', categoria);
+                    }
+                    if (muestraHorarios) {
+                        disponibilidadParams.set('modo', 'agenda');
+                    }
                     Promise.all([
                         fetch('{% url "turnos_json" %}?' + params.toString()).then(response => response.json()),
                         fetch('{% url "agenda_disponibilidad_json" %}?' + disponibilidadParams.toString()).then(response => response.json())
                     ])
                         .then(([turnos, disponibilidad]) => {
-                            const resumenes = disponibilidad.filter(evento =>
-                                evento.extendedProps.resumenTratamiento &&
-                                (categorySelect.value === 'todas' || evento.extendedProps.categoria === categorySelect.value)
-                            );
-                            success([...turnos, ...resumenes]);
+                            const eventosDisponibilidad = muestraHorarios
+                                ? disponibilidad.filter(evento => evento.extendedProps?.disponible)
+                                : disponibilidad.filter(evento =>
+                                    evento.extendedProps.resumenTratamiento &&
+                                    (!filtrada || evento.extendedProps.categoria === categoria)
+                                );
+                            success([...turnos, ...eventosDisponibilidad]);
                         })
                         .catch(failure);
                 },
                 eventClick: function (info) {
                     const props = info.event.extendedProps;
-                    if (props.resumenTratamiento) return;
+                    if (props.resumenTratamiento || props.resumenCategoria) {
+                        if (categorySelect.value !== 'todas' && props.categoria === categorySelect.value) {
+                            calendar.changeView('timeGridDay', info.event.start);
+                        }
+                        return;
+                    }
+                    if (props.disponible) return;
                     const setText = (id, value) => document.getElementById(id).textContent = value || 'Sin nota';
                     setText('detalle-paciente', props.apellido + ', ' + props.nombre);
                     setText('detalle-dni', props.dni);
@@ -112,6 +130,17 @@
                     rescheduleLink.href = props.editarUrl;
                     rescheduleLink.classList.toggle('d-none', !props.editable);
                     modal.show();
+                },
+                dateClick: function (info) {
+                    if (categorySelect.value !== 'todas' && info.view.type !== 'timeGridDay') {
+                        calendar.changeView('timeGridDay', info.date);
+                    }
+                },
+                datesSet: function (info) {
+                    if (activeViewType !== info.view.type) {
+                        activeViewType = info.view.type;
+                        calendar.refetchEvents();
+                    }
                 }
             });
             calendar.render();

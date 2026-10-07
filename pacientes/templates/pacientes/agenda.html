@@ -61,6 +61,58 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="agenda-nota-modal" tabindex="-1" aria-labelledby="agenda-nota-titulo" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form id="agenda-nota-form" class="modal-content">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="agenda-nota-titulo">Notas del día</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="agenda-nota-fecha-label" class="text-muted"></p>
+                    <p id="agenda-nota-autor" class="small text-muted"></p>
+                    <input type="hidden" name="fecha" id="agenda-nota-fecha">
+                    <input type="hidden" name="nota_id" id="agenda-nota-id">
+                    <label for="agenda-nota-texto" class="form-label">Novedades</label>
+                    <textarea class="form-control" name="texto" id="agenda-nota-texto" rows="5" maxlength="1000"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-danger d-none me-auto" id="agenda-nota-eliminar">Eliminar nota</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar nota</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal fade" id="agenda-asignar-modal" tabindex="-1" aria-labelledby="agenda-asignar-titulo" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="agenda-asignar-titulo">Asignar turno disponible</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="agenda-asignar-horario" class="text-muted"></p>
+                    <form id="agenda-buscar-paciente-form" class="mb-3">
+                        {% csrf_token %}
+                        <label for="agenda-paciente-busqueda" class="form-label">Buscar paciente por DNI, nombre o apellido</label>
+                        <div class="input-group">
+                            <input type="search" id="agenda-paciente-busqueda" class="form-control" placeholder="DNI, nombre o apellido" required>
+                            <button type="submit" class="btn btn-primary">Buscar</button>
+                        </div>
+                    </form>
+                    <p id="agenda-busqueda-estado" class="small text-muted" role="status">Ingresá una búsqueda para ver pacientes.</p>
+                    <div id="agenda-pacientes-resultados" class="list-group"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block scripts  %}
@@ -70,23 +122,116 @@
             const categorySelect = document.getElementById('agenda-categoria');
             const modalElement = document.getElementById('turno-detalle-modal');
             const modal = new bootstrap.Modal(modalElement);
+            const noteModal = new bootstrap.Modal(document.getElementById('agenda-nota-modal'));
+            const noteForm = document.getElementById('agenda-nota-form');
+            const noteDate = document.getElementById('agenda-nota-fecha');
+            const noteDateLabel = document.getElementById('agenda-nota-fecha-label');
+            const noteAuthorLabel = document.getElementById('agenda-nota-autor');
+            const noteText = document.getElementById('agenda-nota-texto');
+            const deleteNoteButton = document.getElementById('agenda-nota-eliminar');
+            const assignmentModal = new bootstrap.Modal(document.getElementById('agenda-asignar-modal'));
+            const patientSearchForm = document.getElementById('agenda-buscar-paciente-form');
+            const patientSearchInput = document.getElementById('agenda-paciente-busqueda');
+            const patientSearchStatus = document.getElementById('agenda-busqueda-estado');
+            const patientSearchResults = document.getElementById('agenda-pacientes-resultados');
+            const assignmentSchedule = document.getElementById('agenda-asignar-horario');
             const stateForm = document.getElementById('turno-estado-form');
             const rescheduleLink = document.getElementById('turno-reagendar');
+            let activeViewType = 'dayGridMonth';
+            let selectedAvailableSlot = null;
             const calendar = new FullCalendar.Calendar(document.getElementById('calendario'), {
                 initialView: 'dayGridMonth',
                 locale: 'es',
                 firstDay: 1,
+                allDayText: 'Notas del día',
+                slotMinTime: '08:00:00',
+                slotMaxTime: '19:30:00',
+                slotDuration: '00:15:00',
+                slotLabelInterval: '00:30:00',
+                slotLabelFormat: { hour: 'numeric', minute: '2-digit', hour12: false },
+                eventTimeFormat: { hour: 'numeric', minute: '2-digit', hour12: false },
                 height: 'auto',
                 headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
                 events: function (info, success, failure) {
-                    const params = new URLSearchParams({ categoria: categorySelect.value, start: info.startStr, end: info.endStr });
-                    fetch('{% url "turnos_json" %}?' + params.toString())
-                        .then(response => response.json())
-                        .then(success)
+                    const categoria = categorySelect.value;
+                    const params = new URLSearchParams({ categoria, start: info.startStr, end: info.endStr });
+                    const disponibilidadParams = new URLSearchParams({ start: info.startStr, end: info.endStr });
+                    const filtrada = categoria !== 'todas';
+                    const muestraHorarios = filtrada && ['timeGridWeek', 'timeGridDay'].includes(activeViewType);
+                    if (filtrada) {
+                        disponibilidadParams.set('categoria', categoria);
+                    }
+                    if (muestraHorarios) {
+                        disponibilidadParams.set('modo', 'agenda');
+                    }
+                    const notasParams = new URLSearchParams({ start: info.startStr, end: info.endStr });
+                    Promise.all([
+                        fetch('{% url "turnos_json" %}?' + params.toString()).then(response => response.json()),
+                        fetch('{% url "agenda_disponibilidad_json" %}?' + disponibilidadParams.toString()).then(response => response.json()),
+                        fetch('{% url "agenda_notas" %}?' + notasParams.toString())
+                            .then(response => {
+                                if (!response.ok) throw new Error('No se pudieron cargar las notas del día.');
+                                return response.json();
+                            })
+                            .catch(error => {
+                                console.error(error);
+                                return [];
+                            })
+                    ])
+                        .then(([turnos, disponibilidad, notas]) => {
+                            const eventosDisponibilidad = muestraHorarios
+                                ? disponibilidad.filter(evento => evento.extendedProps?.disponible)
+                                : disponibilidad.filter(evento =>
+                                    evento.extendedProps.resumenTratamiento &&
+                                    (!filtrada || evento.extendedProps.categoria === categoria)
+                                );
+                            const eventosNotas = [...notas];
+                            if (['timeGridWeek', 'timeGridDay'].includes(activeViewType)) {
+                                    const cantidadNotasPorFecha = new Map();
+                                    notas.forEach(nota => {
+                                        const fecha = nota.extendedProps.fecha;
+                                        cantidadNotasPorFecha.set(fecha, (cantidadNotasPorFecha.get(fecha) || 0) + 1);
+                                    });
+                                const fechaActual = new Date(info.start);
+                                while (fechaActual < info.end) {
+                                    const fecha = fechaLocalISO(fechaActual);
+                                        const cantidadNotas = cantidadNotasPorFecha.get(fecha) || 0;
+                                        if (cantidadNotas < 3) {
+                                        eventosNotas.push({
+                                            id: 'nota-agenda-nueva-' + fecha,
+                                                title: '+ Agregar nota (' + (cantidadNotas + 1) + '/3)',
+                                            start: fecha,
+                                            allDay: true,
+                                            backgroundColor: '#f5fbf7',
+                                            borderColor: '#78a889',
+                                            textColor: '#24583a',
+                                            classNames: ['agenda-nota-agregar'],
+                                            extendedProps: { notaAgendaNueva: true, fecha }
+                                        });
+                                    }
+                                    fechaActual.setDate(fechaActual.getDate() + 1);
+                                }
+                            }
+                            success([...turnos, ...eventosDisponibilidad, ...eventosNotas]);
+                        })
                         .catch(failure);
                 },
                 eventClick: function (info) {
                     const props = info.event.extendedProps;
+                    if (props.notaAgenda || props.notaAgendaNueva) {
+                        abrirNotaAgenda(props.fecha, props.texto || '', props.usuario || '', props.notaId || '');
+                        return;
+                    }
+                    if (props.resumenTratamiento || props.resumenCategoria) {
+                        if (categorySelect.value !== 'todas' && props.categoria === categorySelect.value) {
+                            calendar.changeView('timeGridDay', info.event.start);
+                        }
+                        return;
+                    }
+                    if (props.disponible) {
+                        abrirAsignacion(info.event);
+                        return;
+                    }
                     const setText = (id, value) => document.getElementById(id).textContent = value || 'Sin nota';
                     setText('detalle-paciente', props.apellido + ', ' + props.nombre);
                     setText('detalle-dni', props.dni);
@@ -102,10 +247,143 @@
                     rescheduleLink.href = props.editarUrl;
                     rescheduleLink.classList.toggle('d-none', !props.editable);
                     modal.show();
+                },
+                dateClick: function (info) {
+                    if (info.allDay && ['timeGridWeek', 'timeGridDay'].includes(info.view.type)) {
+                        abrirNotaAgenda(info.dateStr);
+                        return;
+                    }
+                    if (categorySelect.value !== 'todas' && info.view.type !== 'timeGridDay') {
+                        calendar.changeView('timeGridDay', info.date);
+                    }
+                },
+                datesSet: function (info) {
+                    if (activeViewType !== info.view.type) {
+                        activeViewType = info.view.type;
+                        calendar.refetchEvents();
+                    }
                 }
             });
+            function abrirNotaAgenda(fecha, texto = '', usuario = '', notaId = '') {
+                noteDate.value = fecha;
+                document.getElementById('agenda-nota-id').value = notaId;
+                noteDateLabel.textContent = new Date(fecha + 'T00:00:00').toLocaleDateString('es-AR', { dateStyle: 'full' });
+                noteAuthorLabel.textContent = usuario ? 'Colocada por ' + usuario : '';
+                noteText.value = texto;
+                deleteNoteButton.classList.toggle('d-none', !notaId);
+                noteModal.show();
+            }
+
+            function abrirAsignacion(evento) {
+                const props = evento.extendedProps;
+                selectedAvailableSlot = {
+                    tratamientoId: props.tratamientoId,
+                    fechaAsistencia: evento.startStr
+                };
+                assignmentSchedule.textContent = `${props.tratamientoNombre} · ${evento.start.toLocaleString('es-AR', { dateStyle: 'full', timeStyle: 'short' })}`;
+                patientSearchForm.reset();
+                patientSearchResults.replaceChildren();
+                patientSearchStatus.textContent = 'Ingresá una búsqueda para ver pacientes.';
+                assignmentModal.show();
+            }
+
             calendar.render();
             categorySelect.addEventListener('change', () => calendar.refetchEvents());
+            patientSearchForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                if (!selectedAvailableSlot) return;
+                const params = new URLSearchParams({
+                    q: patientSearchInput.value.trim(),
+                    tratamiento: selectedAvailableSlot.tratamientoId
+                });
+                patientSearchResults.replaceChildren();
+                patientSearchStatus.textContent = 'Buscando pacientes...';
+                fetch('{% url "agenda_pacientes_disponibles_json" %}?' + params.toString())
+                    .then(response => response.json().then(pacientes => {
+                        if (!response.ok) throw new Error(pacientes.error || 'No se pudo buscar pacientes.');
+                        return pacientes;
+                    }))
+                    .then(pacientes => {
+                        if (!pacientes.length) {
+                            patientSearchStatus.textContent = 'No se encontraron pacientes elegibles con esa búsqueda.';
+                            return;
+                        }
+                        patientSearchStatus.textContent = 'Seleccioná un paciente para asignar el turno.';
+                        pacientes.forEach(paciente => {
+                            const fila = document.createElement('div');
+                            fila.className = 'list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2';
+                            const detalle = document.createElement('span');
+                            detalle.textContent = `${paciente.apellido}, ${paciente.nombre} · DNI ${paciente.dni} · ${paciente.telefono}`;
+                            const asignar = document.createElement('button');
+                            asignar.type = 'button';
+                            asignar.className = 'btn btn-sm btn-primary';
+                            asignar.textContent = 'Asignar turno';
+                            asignar.addEventListener('click', () => asignarTurnoDisponible(paciente, asignar));
+                            fila.append(detalle, asignar);
+                            patientSearchResults.appendChild(fila);
+                        });
+                    })
+                    .catch(error => {
+                        patientSearchStatus.textContent = error.message;
+                    });
+            });
+
+            function asignarTurnoDisponible(paciente, boton) {
+                if (!selectedAvailableSlot) return;
+                boton.disabled = true;
+                const csrfToken = patientSearchForm.querySelector('[name=csrfmiddlewaretoken]').value;
+                fetch('{% url "agenda_asignar_turno_disponible" %}', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrfToken },
+                    body: new URLSearchParams({
+                        dni: paciente.dni,
+                        tratamiento: selectedAvailableSlot.tratamientoId,
+                        fecha_asistencia: selectedAvailableSlot.fechaAsistencia
+                    })
+                })
+                    .then(response => response.json().then(data => {
+                        if (!response.ok) throw new Error(data.error || 'No se pudo asignar el turno.');
+                        return data;
+                    }))
+                    .then(() => {
+                        assignmentModal.hide();
+                        calendar.refetchEvents();
+                    })
+                    .catch(error => {
+                        patientSearchStatus.textContent = error.message;
+                        boton.disabled = false;
+                    });
+            }
+
+            noteForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                fetch('{% url "agenda_notas" %}', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': noteForm.querySelector('[name=csrfmiddlewaretoken]').value },
+                    body: new URLSearchParams(new FormData(noteForm))
+                })
+                    .then(response => response.json().then(data => {
+                        if (!response.ok) throw new Error(data.error || 'No se pudo guardar la nota.');
+                        return data;
+                    }))
+                    .then(() => {
+                        noteModal.hide();
+                        calendar.refetchEvents();
+                    })
+                    .catch(error => window.alert(error.message));
+            });
+            function fechaLocalISO(fecha) {
+                const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+                const dia = String(fecha.getDate()).padStart(2, '0');
+                return `${fecha.getFullYear()}-${mes}-${dia}`;
+            }
+
+            deleteNoteButton.addEventListener('click', function () {
+                if (window.confirm('¿Eliminar la nota de este día?')) {
+                    noteText.value = '';
+                    noteForm.requestSubmit();
+                }
+            });
             stateForm.addEventListener('submit', function (event) {
                 if (stateForm.querySelector('select').value === 'cancelado' && !window.confirm('¿Cancelar este turno? Se conservará en el historial y el horario quedará disponible.')) {
                     event.preventDefault();

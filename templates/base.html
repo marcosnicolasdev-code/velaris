@@ -57,7 +57,7 @@
             <a class="nav-link text-white fs-5 {% if request.path == '/' %}active{% endif %}" href="{% url 'paciente_crear' %}">Nuevo paciente</a>
 
           <li class="nav-item mx-3">
-            <a class="nav-link text-white fs-5 {% if request.path == '/' %}active{% endif %}" href="{% url 'inicio' %} ">Nuevo turno</a>
+            <a class="nav-link text-white fs-5 {% if request.path == '/' %}active{% endif %}" href="{% url 'nuevo_turno_agenda' %}">Nuevo turno</a>
           </li>
           <li class="nav-item mx-3">
             <a class="nav-link text-white fs-5 {% if request.path == '/' %}active{% endif %}" href="{% url 'tratamiento_lista' %} ">Nuevo tratamiento</a>

@@ -55,6 +55,13 @@ class Turno(models.Model):
         on_delete=models.PROTECT,
         null=True, blank=True,
     )
+    indicacion_medica = models.ForeignKey(
+        "Evolucion",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="turnos_indicados",
+    )
     paciente = models.ForeignKey(Paciente, on_delete=models.PROTECT)
     tratamiento = models.ForeignKey(
         "tratamientos.Tratamiento",
@@ -66,6 +73,7 @@ class Turno(models.Model):
         default=Estado.ASIGNADO,
     )
     fecha_asistencia = models.DateTimeField()
+    nota = models.TextField(blank=True)
 
     def __str__(self):
         return f"{self.paciente} - {self.fecha_asistencia}"
@@ -101,6 +109,13 @@ class Evolucion(models.Model):
         null=True,
         blank=True,
         related_name="evoluciones",
+    )
+    tratamiento_indicado = models.ForeignKey(
+        "tratamientos.Tratamiento",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="evoluciones_indicacion",
     )
     usuario = models.ForeignKey(
         settings.AUTH_USER_MODEL,

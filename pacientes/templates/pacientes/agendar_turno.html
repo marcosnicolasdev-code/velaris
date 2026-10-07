@@ -1,13 +1,114 @@
 {% extends "base.html" %}
 {% block titulo %}Agendar turno — Velaris{% endblock %}
 {% block contenido %}
-  <h1>Agendar turno para {{ paciente.nombre_paciente }} {{ paciente.apellido_paciente }}</h1>
-  <p class="text-muted">Elegí una consulta O un tratamiento en curso (no ambos).</p>
+  <h1>{% if edicion %}Reagendar turno{% else %}Agendar turno{% endif %} para {{ paciente.nombre_paciente }} {{ paciente.apellido_paciente }}</h1>
+  <p class="text-muted">{% if edicion %}El paciente y la prestación se mantienen. Elegí otro horario disponible.{% else %}Elegí una prestación y después seleccioná un horario disponible en el calendario.{% endif %}</p>
 
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Agendar</button>
-    <a href="{% url 'paciente_detalle' paciente.dni %}" class="btn btn-secondary">Cancelar</a>
-  </form>
+  <div class="row g-4">
+    <div class="col-12 col-lg-4">
+      <form method="post" id="turno-form">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label" for="id_tratamiento">Prestación</label>
+          {% if edicion %}
+            <p class="form-control-plaintext">{{ form.instance.tratamiento }}</p>
+            {{ form.tratamiento.as_hidden }}
+          {% else %}
+            {{ form.tratamiento }}
+          {% endif %}
+          {% for error in form.tratamiento.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="id_fecha_asistencia">Día y horario</label>
+          {{ form.fecha_asistencia }}
+          {% for error in form.fecha_asistencia.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="id_estado">Estado inicial</label>
+          {% if edicion %}
+            <p class="form-control-plaintext">{{ form.instance.get_estado_display }}</p>
+            {{ form.estado.as_hidden }}
+          {% else %}
+            {{ form.estado }}
+          {% endif %}
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="id_nota">Nota administrativa (opcional)</label>
+          {{ form.nota }}
+        </div>
+        {% for error in form.non_field_errors %}<div class="alert alert-danger">{{ error }}</div>{% endfor %}
+        <button type="submit" class="btn btn-primary">{% if edicion %}Guardar nuevo horario{% else %}Confirmar turno{% endif %}</button>
+        <a href="{% url 'agenda' %}" class="btn btn-secondary">Cancelar</a>
+      </form>
+    </div>
+    <div class="col-12 col-lg-8">
+      <div class="small text-muted mb-2">En el mes ves la cantidad de horarios libres por día. En la semana ves cada horario y el estado de los turnos.</div>
+      <div id="calendario-turno"></div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const calendarElement = document.getElementById('calendario-turno');
+      const treatmentSelect = document.getElementById('id_tratamiento');
+      const dateInput = document.getElementById('id_fecha_asistencia');
+      const calendar = new FullCalendar.Calendar(calendarElement, {
+        initialView: 'dayGridMonth',
+        initialDate: dateInput.value ? dateInput.value.slice(0, 10) : undefined,
+        locale: 'es',
+        firstDay: 1,
+        slotMinTime: '08:00:00',
+        slotMaxTime: '20:00:00',
+        slotDuration: '00:15:00',
+        allDaySlot: false,
+        height: 'auto',
+        headerToolbar: { left: 'prev,next today', center: 'title', right: 'timeGridWeek,dayGridMonth' },
+        events: function (info, success, failure) {
+          const params = new URLSearchParams({ start: info.startStr, end: info.endStr });
+          if (treatmentSelect.value) {
+            params.set('tratamiento', treatmentSelect.value);
+          }
+          if ('{{ paciente.dni|escapejs }}') {
+            params.set('dni', '{{ paciente.dni|escapejs }}');
+          }
+          {% if edicion %}params.set('turno', '{{ turno.pk }}');{% endif %}
+          fetch('{% url "agenda_disponibilidad_json" %}?' + params.toString())
+            .then(response => response.json())
+            .then(events => {
+              if (!treatmentSelect.value) {
+                success(calendar.view.type === 'dayGridMonth'
+                  ? events.filter(evento => evento.extendedProps?.resumenCategoria)
+                  : []);
+                return;
+              }
+              const resumenes = events.filter(evento => evento.extendedProps?.disponibilidadResumen);
+              success(calendar.view.type === 'dayGridMonth'
+                ? resumenes
+                : events.filter(evento => !evento.extendedProps?.disponibilidadResumen));
+            })
+            .catch(failure);
+        },
+        eventClick: function (info) {
+          if (info.event.extendedProps.resumenCategoria) return;
+          if (info.event.extendedProps.disponibilidadResumen) {
+            calendar.changeView('timeGridDay', info.event.start);
+            calendar.refetchEvents();
+            return;
+          }
+          if (!info.event.extendedProps.disponible) return;
+          const localStart = new Date(info.event.start.getTime() - info.event.start.getTimezoneOffset() * 60000);
+          dateInput.value = localStart.toISOString().slice(0, 16);
+        }
+      });
+      {% if not edicion %}dateInput.value = '';{% endif %}
+      calendar.render();
+      treatmentSelect.addEventListener('change', function () {
+        dateInput.value = '';
+        calendar.refetchEvents();
+      });
+    });
+  </script>
 {% endblock %}

@@ -47,6 +47,16 @@
       <textarea name="se_indica" id="se_indica" class="form-control" rows="3"></textarea>
     </div>
 
+    {% if puede_indicar_tratamiento %}
+      <div class="mb-3">
+        {{ indicacion_form.tratamiento_indicado.label_tag }}
+        {{ indicacion_form.tratamiento_indicado }}
+        {% for error in indicacion_form.tratamiento_indicado.errors %}
+          <div class="text-danger">{{ error }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
     <button type="submit" class="btn btn-success">Guardar evolución</button>
     <a
       href="{% url 'paciente_detalle' paciente.dni %}"

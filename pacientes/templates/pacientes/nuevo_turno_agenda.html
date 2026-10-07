@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block titulo %}Nuevo turno — Velaris{% endblock %}
+{% block contenido %}
+  <h1>Nuevo turno</h1>
+  <p class="text-muted">Buscá al paciente por DNI, nombre o apellido.</p>
+
+  <form method="get" class="mt-4 mb-4" style="max-width: 520px;">
+    <label for="q" class="form-label">Paciente</label>
+    <div class="input-group">
+      <input type="search" id="q" name="q" value="{{ busqueda }}" class="form-control" placeholder="DNI, nombre o apellido" autofocus>
+      <button type="submit" class="btn btn-primary">Buscar</button>
+    </div>
+  </form>
+
+  {% if busqueda %}
+    <div class="list-group" style="max-width: 720px;">
+      {% for paciente in pacientes %}
+        <a href="{% url 'agendar_turno' paciente.dni %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+          <span>{{ paciente.apellido_paciente }}, {{ paciente.nombre_paciente }}</span>
+          <span class="text-muted">DNI {{ paciente.dni }} · {{ paciente.telefono }}</span>
+        </a>
+      {% empty %}
+        <p class="alert alert-light">No encontramos pacientes con esa búsqueda.</p>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="mt-4">
+    <a href="{% url 'agenda' %}" class="btn btn-secondary">Cancelar</a>
+  </div>
+{% endblock %}

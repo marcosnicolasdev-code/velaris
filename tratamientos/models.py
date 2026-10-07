@@ -1,11 +1,22 @@
 from django.db import models
 class Tratamiento(models.Model):
+ class AgendaCategoria(models.TextChoices):
+  CONSULTORIO = "consultorio", "Prestaciones del consultorio"
+  MTC = "mtc", "MTC"
+  NTF = "ntf", "NTF"
+  PRP = "prp", "PRP"
+
  id_tratamiento = models.AutoField(primary_key=True) 
  nombre_tratamiento = models.CharField(max_length=100, null=True, blank=True)
  duracion_tratamiento = models.DurationField() 
  sesion_tratamiento = models.SmallIntegerField(default=1)
  precio_total = models.IntegerField(default=0)
  requiere_plan = models.BooleanField(default=False)
+ agenda_categoria = models.CharField(
+  max_length=20,
+  choices=AgendaCategoria.choices,
+  default=AgendaCategoria.CONSULTORIO,
+ )
 
  def __str__(self): 
    return str(self.nombre_tratamiento)

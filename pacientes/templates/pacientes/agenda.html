@@ -1,32 +1,116 @@
 {% extends "base.html" %}
 {% block titulo %}Agenda{% endblock %}
 {% block contenido %}
-  <h1>Agenda de turnos</h1>
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+        <div>
+            <h1 class="mb-1">Agenda de turnos</h1>
+            <label for="agenda-categoria" class="form-label mb-1">Ver agenda</label>
+            <select id="agenda-categoria" class="form-select" style="min-width: 280px;">
+                <option value="todas">Todas</option>
+                <option value="consultorio">Prestaciones del consultorio</option>
+                <option value="mtc">MTC</option>
+                <option value="ntf">NTF</option>
+                <option value="prp">PRP</option>
+            </select>
+        </div>
+        <a href="{% url 'nuevo_turno_agenda' %}" class="btn btn-primary">Nuevo turno</a>
+    </div>
 
   <div id="calendario"></div>
+
+    <div class="d-flex flex-wrap gap-3 small text-muted mt-3" aria-label="Estados de turnos">
+        <span><i class="agenda-status-dot" style="background:#d79b16"></i>Reservado</span>
+        <span><i class="agenda-status-dot" style="background:#247a52"></i>Asignado</span>
+        <span><i class="agenda-status-dot" style="background:#3667a6"></i>Finalizado</span>
+        <span><i class="agenda-status-dot" style="background:#bd4a43"></i>Ausente</span>
+        <span><i class="agenda-status-dot" style="background:#6c757d"></i>Cancelado</span>
+    </div>
+
+    <div class="modal fade" id="turno-detalle-modal" tabindex="-1" aria-labelledby="turno-detalle-titulo" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="turno-detalle-titulo">Detalle del turno</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <dl class="row mb-0">
+                        <dt class="col-4">Paciente</dt><dd class="col-8" id="detalle-paciente"></dd>
+                        <dt class="col-4">DNI</dt><dd class="col-8" id="detalle-dni"></dd>
+                        <dt class="col-4">Teléfono</dt><dd class="col-8" id="detalle-telefono"></dd>
+                        <dt class="col-4">Día y hora</dt><dd class="col-8" id="detalle-fecha"></dd>
+                        <dt class="col-4">Prestación</dt><dd class="col-8" id="detalle-prestacion"></dd>
+                        <dt class="col-4">Estado</dt><dd class="col-8" id="detalle-estado"></dd>
+                        <dt class="col-4">Nota</dt><dd class="col-8" id="detalle-nota"></dd>
+                    </dl>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <a id="turno-reagendar" href="#" class="btn btn-outline-primary d-none">Reagendar</a>
+                    <form id="turno-estado-form" method="post" class="d-none d-flex align-items-center gap-2">
+                        {% csrf_token %}
+                        <select name="estado" class="form-select" aria-label="Cambiar estado del turno">
+                            <option value="reservado">Reservado</option>
+                            <option value="asignado">Asignado</option>
+                            <option value="finalizado">Finalizado</option>
+                            <option value="ausente">Ausente</option>
+                            <option value="cancelado">Cancelado</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary">Actualizar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block scripts  %}
-  <!-- la librería FullCalendar (se carga desde internet) -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
-    
     <script>
-        
-        document.addEventListener('DOMContentLoaded', function() { // El DOM permite que primero se cargue el calendario y despues la pagina
-            
-            var elemento = document.getElementById('calendario');
-
-            var calendario = new FullCalendar.Calendar(elemento, {
-                initialView: 'dayGridMonth',            // arranca en vista de mes
-                locale: 'es',                           // idioma español
-                headerToolbar: {
-                    left: 'prev,next today',            // botones de navegación
-                    center: 'title',                    // título del calendario (mes y año)
-                    right: 'dayGridMonth,timeGridWeek'  // botones para cambiar mes y semana
+        document.addEventListener('DOMContentLoaded', function () {
+            const categorySelect = document.getElementById('agenda-categoria');
+            const modalElement = document.getElementById('turno-detalle-modal');
+            const modal = new bootstrap.Modal(modalElement);
+            const stateForm = document.getElementById('turno-estado-form');
+            const rescheduleLink = document.getElementById('turno-reagendar');
+            const calendar = new FullCalendar.Calendar(document.getElementById('calendario'), {
+                initialView: 'dayGridMonth',
+                locale: 'es',
+                firstDay: 1,
+                height: 'auto',
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
+                events: function (info, success, failure) {
+                    const params = new URLSearchParams({ categoria: categorySelect.value, start: info.startStr, end: info.endStr });
+                    fetch('{% url "turnos_json" %}?' + params.toString())
+                        .then(response => response.json())
+                        .then(success)
+                        .catch(failure);
                 },
-                events: '{% url "turnos_json" %}'
+                eventClick: function (info) {
+                    const props = info.event.extendedProps;
+                    const setText = (id, value) => document.getElementById(id).textContent = value || 'Sin nota';
+                    setText('detalle-paciente', props.apellido + ', ' + props.nombre);
+                    setText('detalle-dni', props.dni);
+                    setText('detalle-telefono', props.telefono);
+                    setText('detalle-fecha', info.event.start.toLocaleString('es-AR', { dateStyle: 'long', timeStyle: 'short' }));
+                    setText('detalle-prestacion', props.prestacion);
+                    setText('detalle-estado', props.estado);
+                    setText('detalle-nota', props.nota);
+                    stateForm.action = props.estadoUrl;
+                    stateForm.querySelector('select').value = props.estadoCodigo;
+                    stateForm.classList.toggle('d-none', !props.editable);
+                    stateForm.classList.toggle('d-flex', props.editable);
+                    rescheduleLink.href = props.editarUrl;
+                    rescheduleLink.classList.toggle('d-none', !props.editable);
+                    modal.show();
+                }
             });
-            calendario.render();
+            calendar.render();
+            categorySelect.addEventListener('change', () => calendar.refetchEvents());
+            stateForm.addEventListener('submit', function (event) {
+                if (stateForm.querySelector('select').value === 'cancelado' && !window.confirm('¿Cancelar este turno? Se conservará en el historial y el horario quedará disponible.')) {
+                    event.preventDefault();
+                }
+            });
         });
     </script>
 {% endblock %}

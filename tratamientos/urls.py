@@ -10,6 +10,7 @@ urlpatterns = [
 # --------PLAN PAGO--------------
 path("planes/", views.planpago_lista, name="planpago_lista"),
 path("planes/nuevo/", views.planpago_crear, name="planpago_crear"),
+path("planes/cobrar/<str:dni>/", views.planpago_crear, name="planpago_cobrar"),
 path("planes/<str:id>/editar", views.planpago_editar, name="planpago_editar"),
 path("planes/<str:id>/borrar", views.planpago_borrar, name="planpago_borrar"),
 

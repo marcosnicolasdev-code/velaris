@@ -93,6 +93,12 @@
                     </p>
                   {% endif %}
 
+                  {% if evolucion.tratamiento_indicado %}
+                    <p class="mb-2">
+                      <small class="badge bg-success">✓ Tratamiento indicado: {{ evolucion.tratamiento_indicado }}</small>
+                    </p>
+                  {% endif %}
+
                   <p class="mb-0">{{ evolucion.primera_linea }}</p>
 
                   {% if evolucion.turno %}

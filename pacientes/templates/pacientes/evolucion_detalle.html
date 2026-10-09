@@ -26,6 +26,12 @@
     </p>
   {% endif %}
 
+  {% if evolucion.tratamiento_indicado %}
+    <p class="text-primary">
+      <strong>✓ Tratamiento indicado:</strong> {{ evolucion.tratamiento_indicado }}
+    </p>
+  {% endif %}
+
   <hr>
 
   {% if secciones %}

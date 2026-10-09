@@ -308,7 +308,9 @@ def evolucion_profesional_crear(request, dni):
     historia = paciente.get_historia_clinica()
 
     if request.method == "POST":
-        indicacion_form = TratamientoIndicadoForm(request.POST)
+        indicacion_form = TratamientoIndicadoForm(request.POST) if puede_indicar_tratamiento else TratamientoIndicadoForm()
+        
+        # Validar formulario de tratamiento si aplica
         if puede_indicar_tratamiento and not usa_descripcion_simple and not indicacion_form.is_valid():
             return render(
                 request,
@@ -319,12 +321,14 @@ def evolucion_profesional_crear(request, dni):
                     "puede_indicar_tratamiento": puede_indicar_tratamiento,
                 },
             )
+        
         fecha = timezone.localdate()
         if usa_descripcion_simple:
             tipo = request.POST.get("tipo", Evolucion.Tipo.NTF)
             contenido = request.POST.get("descripcion", "").strip()
             descripcion = f"Pte. realiza:\n{contenido}".strip()
             numero_sesion = None
+            tratamiento_indicado = None
         else:
             tipo = request.POST.get("tipo", Evolucion.Tipo.PRIVADA)
             numero_sesion = None
@@ -333,8 +337,25 @@ def evolucion_profesional_crear(request, dni):
             examen_fisico = request.POST.get("examen_fisico", "").strip()
             se_indica = request.POST.get("se_indica", "").strip()
             tratamiento_indicado = (
-                indicacion_form.cleaned_data["tratamiento_indicado"]
-                if puede_indicar_tratamiento
+                indicacion_form.cleaned_data.get("tratamiento_indicado")
+                if puede_indicar_tratamiento and indicacion_form.is_valid()
+                else None
+            )
+            descripcion = (
+                f"Pte.:\n{motivo}\n\n"
+                f"Antecedentes:\n{antecedentes}\n\n"
+                f"Examen físico:\n{examen_fisico}\n\n"
+                f"Se le indica:\n{se_indica}"
+            )
+            tipo = request.POST.get("tipo", Evolucion.Tipo.PRIVADA)
+            numero_sesion = None
+            motivo = request.POST.get("motivo", "").strip()
+            antecedentes = request.POST.get("antecedentes", "").strip()
+            examen_fisico = request.POST.get("examen_fisico", "").strip()
+            se_indica = request.POST.get("se_indica", "").strip()
+            tratamiento_indicado = (
+                indicacion_form.cleaned_data.get("tratamiento_indicado")
+                if puede_indicar_tratamiento and indicacion_form.is_valid()
                 else None
             )
             descripcion = (

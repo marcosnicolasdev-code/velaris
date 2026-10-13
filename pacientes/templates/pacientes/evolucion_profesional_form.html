@@ -10,6 +10,12 @@
     <strong>{{ paciente.apellido_paciente }}, {{ paciente.nombre_paciente }}</strong>
   </p>
 
+  {% if error %}
+    <div class="alert alert-danger" role="alert">
+      {{ error }}
+    </div>
+  {% endif %}
+
   <form method="post">
     {% csrf_token %}
 
@@ -28,7 +34,7 @@
     </div>
 
     <div class="mb-3">
-      <label for="motivo">Pte.:</label>
+      <label for="motivo">Paciente refiere:</label>
       <textarea name="motivo" id="motivo" class="form-control" rows="3" required></textarea>
     </div>
 

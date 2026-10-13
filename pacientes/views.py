@@ -68,7 +68,7 @@ def paciente_detalle(request, dni):
     evoluciones = (
         historia.evoluciones
         .select_related("profesional__usuario", "usuario", "turno")
-        .order_by("-fecha_evolucion")
+        .order_by("-fecha_evolucion", "-created_at")
     )
     for evolucion in evoluciones:
         lineas = evolucion.descripcion.splitlines()
@@ -292,6 +292,11 @@ def evolucion_crear(request, dni):
 def evolucion_profesional_crear(request, dni):
     grupos_clinicos = {"Médico", "Enfermero", "Instrumentador"}
     es_clinico = request.user.groups.filter(name__in=grupos_clinicos).exists()
+    
+    # Permitir si es superusuario o está en un grupo clínico
+    if not (request.user.is_superuser or es_clinico):
+        raise PermissionDenied
+    
     grupos_descripcion_simple = {"Enfermero", "Instrumentador"}
     usa_descripcion_simple = request.user.groups.filter(
         name__in=grupos_descripcion_simple
@@ -301,8 +306,6 @@ def evolucion_profesional_crear(request, dni):
         or request.user.groups.filter(name="Médico").exists()
     )
     profesional = getattr(request.user, "profesional", None)
-    if profesional is None and not es_clinico:
-        raise PermissionDenied
 
     paciente = get_object_or_404(Paciente, dni=dni)
     historia = paciente.get_historia_clinica()
@@ -342,33 +345,85 @@ def evolucion_profesional_crear(request, dni):
                 else None
             )
             descripcion = (
-                f"Pte.:\n{motivo}\n\n"
+                f"Paciente refiere:\n{motivo}\n\n"
                 f"Antecedentes:\n{antecedentes}\n\n"
                 f"Examen físico:\n{examen_fisico}\n\n"
                 f"Se le indica:\n{se_indica}"
             )
-            tipo = request.POST.get("tipo", Evolucion.Tipo.PRIVADA)
-            numero_sesion = None
-            motivo = request.POST.get("motivo", "").strip()
-            antecedentes = request.POST.get("antecedentes", "").strip()
-            examen_fisico = request.POST.get("examen_fisico", "").strip()
-            se_indica = request.POST.get("se_indica", "").strip()
-            tratamiento_indicado = (
-                indicacion_form.cleaned_data.get("tratamiento_indicado")
-                if puede_indicar_tratamiento and indicacion_form.is_valid()
-                else None
-            )
-            descripcion = (
-                f"Pte.:\n{motivo}\n\n"
-                f"Antecedentes:\n{antecedentes}\n\n"
-                f"Examen físico:\n{examen_fisico}\n\n"
-                f"Se le indica:\n{se_indica}"
-            )
+            
+            # Validar compatibilidad entre tipo de evolución y tratamiento indicado
+            if tratamiento_indicado:
+                tipo_lower = tipo.lower()
+                
+                # Verificar si el paciente tiene planes activos
+                planes_activos = PlanPago.objects.filter(dni=paciente, estado="activo")
+                plan_prp_activo = planes_activos.filter(
+                    tratamiento__agenda_categoria=Tratamiento.AgendaCategoria.PRP
+                ).first()
+                plan_ntf_activo = planes_activos.filter(
+                    tratamiento__agenda_categoria=Tratamiento.AgendaCategoria.NTF
+                ).first()
+                
+                # Es evolución de CONTROL (seguimiento), se permite indicar tratamiento opuesto
+                es_control = "control_" in tipo_lower
+                
+                # NTF (sin ser control) no puede asignar tratamiento PRP
+                if "ntf" in tipo_lower and not es_control and tratamiento_indicado.agenda_categoria == Tratamiento.AgendaCategoria.PRP:
+                    return render(
+                        request,
+                        "pacientes/evolucion_profesional_form.html",
+                        {
+                            "paciente": paciente,
+                            "indicacion_form": indicacion_form,
+                            "puede_indicar_tratamiento": puede_indicar_tratamiento,
+                            "error": "No se puede asignar un tratamiento PRP en una evolución NTF.",
+                        },
+                    )
+                # PRP (sin ser control) no puede asignar tratamiento NTF
+                if "prp" in tipo_lower and not es_control and tratamiento_indicado.agenda_categoria == Tratamiento.AgendaCategoria.NTF:
+                    return render(
+                        request,
+                        "pacientes/evolucion_profesional_form.html",
+                        {
+                            "paciente": paciente,
+                            "indicacion_form": indicacion_form,
+                            "puede_indicar_tratamiento": puede_indicar_tratamiento,
+                            "error": "No se puede asignar un tratamiento NTF en una evolución PRP.",
+                        },
+                    )
+                
+                # Si es evolución simple (NTF/PRP sin "control_"), valida que no esté haciendo el tratamiento opuesto
+                if not es_control:
+                    # Si es evolución NTF y está haciendo PRP, no permite
+                    if "ntf" in tipo_lower and plan_prp_activo:
+                        return render(
+                            request,
+                            "pacientes/evolucion_profesional_form.html",
+                            {
+                                "paciente": paciente,
+                                "indicacion_form": indicacion_form,
+                                "puede_indicar_tratamiento": puede_indicar_tratamiento,
+                                "error": "El paciente está haciendo PRP. No se puede crear una evolución NTF mientras esté en PRP.",
+                            },
+                        )
+                    
+                    # Si es evolución PRP y está haciendo NTF, no permite
+                    if "prp" in tipo_lower and plan_ntf_activo:
+                        return render(
+                            request,
+                            "pacientes/evolucion_profesional_form.html",
+                            {
+                                "paciente": paciente,
+                                "indicacion_form": indicacion_form,
+                                "puede_indicar_tratamiento": puede_indicar_tratamiento,
+                                "error": "El paciente está haciendo NTF. No se puede crear una evolución PRP mientras esté en NTF.",
+                            },
+                        )
 
         Evolucion.objects.create(
             historia_clinica=historia,
             profesional=profesional,
-            tratamiento_indicado=tratamiento_indicado if not usa_descripcion_simple else None,
+            tratamiento_indicado=tratamiento_indicado,
             usuario=request.user,
             tipo=tipo,
             fecha_evolucion=fecha,

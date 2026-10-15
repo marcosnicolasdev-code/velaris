@@ -47,7 +47,7 @@ def tratamiento_borrar(request,id):
 def planpago_lista (request): 
     planes = PlanPago.objects.select_related('nombre_tratamiento').all()
     return render (request,"tratamientos/planpago_lista.html", {"planes": planes})
-@login_required 
+@login_required
 def planpago_crear(request, dni=None):
     grupos = {
         unicodedata.normalize("NFKD", nombre or "")
@@ -66,23 +66,48 @@ def planpago_crear(request, dni=None):
             plan = form.save(commit=False)
             if paciente:
                 plan.dni = paciente
+            
+            # Validar que no exista un plan activo para el mismo tratamiento
             if PlanPago.objects.filter(dni=plan.dni, tratamiento=plan.tratamiento, estado="activo").exists():
                 form.add_error("tratamiento", "El paciente ya tiene un plan activo para este tratamiento.")
             else:
-                with transaction.atomic():
-                    plan.sesiones_total = plan.tratamiento.sesion_tratamiento
-                    plan.valor_sesion = plan.tratamiento.precio_por_sesion
-                    plan.save()
-                    ahora = timezone.now()
-                    Turno.objects.filter(
-                        paciente=plan.dni,
-                        tratamiento=plan.tratamiento,
-                        fecha_asistencia__gte=ahora,
-                        plan__isnull=True,
-                        estado__in=["reservado", "asignado"],
-                        indicacion_medica__tratamiento_indicado=plan.tratamiento,
-                    ).update(plan=plan)
-                return redirect("paciente_detalle", dni=plan.dni_id) if paciente else redirect("planpago_lista")
+                # Validar compatibilidad entre NTF y PRP
+                nueva_categoria = plan.tratamiento.agenda_categoria
+                planes_activos = PlanPago.objects.filter(dni=plan.dni, estado="activo")
+                puede_crear = True
+                
+                # Si es NTF, verificar que no haya PRP activo (con cualquier sesión consumida)
+                if nueva_categoria == Tratamiento.AgendaCategoria.NTF:
+                    prp_activo = planes_activos.filter(tratamiento__agenda_categoria=Tratamiento.AgendaCategoria.PRP).first()
+                    if prp_activo:
+                        form.add_error("tratamiento", "El paciente está haciendo PRP. No se puede asignar NTF mientras esté en PRP.")
+                        puede_crear = False
+                
+                # Si es PRP, verificar que no haya NTF activo (con cualquier sesión consumida)
+                elif nueva_categoria == Tratamiento.AgendaCategoria.PRP:
+                    ntf_activo = planes_activos.filter(tratamiento__agenda_categoria=Tratamiento.AgendaCategoria.NTF).first()
+                    if ntf_activo:
+                        form.add_error("tratamiento", "El paciente está haciendo NTF. No se puede asignar PRP mientras esté en NTF.")
+                        puede_crear = False
+                
+                # MTC y CONSULTORIO siempre están permitidos (pueden coexistir con otros)
+                # No hay validación adicional
+                
+                if puede_crear:
+                    with transaction.atomic():
+                        plan.sesiones_total = plan.tratamiento.sesion_tratamiento
+                        plan.valor_sesion = plan.tratamiento.precio_por_sesion
+                        plan.save()
+                        ahora = timezone.now()
+                        Turno.objects.filter(
+                            paciente=plan.dni,
+                            tratamiento=plan.tratamiento,
+                            fecha_asistencia__gte=ahora,
+                            plan__isnull=True,
+                            estado__in=["reservado", "asignado"],
+                            indicacion_medica__tratamiento_indicado=plan.tratamiento,
+                        ).update(plan=plan)
+                    return redirect("paciente_detalle", dni=plan.dni_id) if paciente else redirect("planpago_lista")
     else:
         form = PlanPagoForm(paciente=paciente)
     return render(

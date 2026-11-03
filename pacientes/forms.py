@@ -6,6 +6,60 @@ from django.utils import timezone
 from .models import Evolucion, Paciente, Turno 
 from tratamientos.models import Tratamiento, PlanPago
 
+
+def puede_agendar_tratamiento(paciente, tratamiento, turno_actual=None):
+    categoria = tratamiento.agenda_categoria
+    if categoria == Tratamiento.AgendaCategoria.CONSULTORIO:
+        return True
+    if not Evolucion.objects.filter(
+        historia_clinica__paciente=paciente,
+        tratamiento_indicado=tratamiento,
+    ).exists():
+        return False
+
+    categoria_incompatible = {
+        Tratamiento.AgendaCategoria.NTF: Tratamiento.AgendaCategoria.PRP,
+        Tratamiento.AgendaCategoria.PRP: Tratamiento.AgendaCategoria.NTF,
+    }.get(categoria)
+    if not categoria_incompatible:
+        return True
+
+    if PlanPago.objects.filter(
+        dni=paciente,
+        estado="activo",
+        tratamiento__agenda_categoria=categoria_incompatible,
+    ).exists():
+        return False
+
+    turnos_opuestos = Turno.objects.filter(
+        paciente=paciente,
+        tratamiento__agenda_categoria=categoria_incompatible,
+        estado__in=[
+            Turno.Estado.RESERVADO,
+            Turno.Estado.ASIGNADO,
+            Turno.Estado.PRESENTE,
+        ],
+    )
+    if turno_actual:
+        turnos_opuestos = turnos_opuestos.exclude(pk=turno_actual.pk)
+    if turnos_opuestos.exists():
+        return False
+
+    tratamientos_en_curso_sin_plan = Tratamiento.objects.filter(
+        agenda_categoria=categoria_incompatible
+    )
+    for tratamiento_opuesto in tratamientos_en_curso_sin_plan:
+        sesiones_realizadas = Turno.objects.filter(
+            paciente=paciente,
+            tratamiento=tratamiento_opuesto,
+            estado__in=[Turno.Estado.PRESENTE, Turno.Estado.FINALIZADO],
+            plan__isnull=True,
+        ).count()
+        if sesiones_realizadas and sesiones_realizadas < tratamiento_opuesto.sesion_tratamiento:
+            return False
+    return True
+
+
 class PacienteForm(forms.ModelForm):
 
     OPCIONES_SEXO = [
@@ -70,12 +124,11 @@ class TurnoForm(forms.ModelForm):
 class AgendarTurnoForm(forms.ModelForm):
     class Meta:
         model = Turno
-        fields = ["tratamiento", "fecha_asistencia", "estado", "nota"]
+        fields = ["tratamiento", "fecha_asistencia", "estado"]
         widgets = {
             "fecha_asistencia": forms.DateTimeInput(attrs={"type": "datetime-local", "class": "form-control"}),
             "tratamiento": forms.Select(attrs={"class": "form-select"}),
             "estado": forms.Select(attrs={"class": "form-select"}),
-            "nota": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
         }
 
     def __init__(self, *args, paciente=None, **kwargs):
@@ -98,8 +151,6 @@ class AgendarTurnoForm(forms.ModelForm):
             (Turno.Estado.RESERVADO, Turno.Estado.RESERVADO.label),
             (Turno.Estado.ASIGNADO, Turno.Estado.ASIGNADO.label),
         ]
-        self.fields["nota"].required = False
-
     def clean(self):
         cleaned = super().clean()
         tratamiento = cleaned.get("tratamiento")
@@ -153,7 +204,7 @@ class AgendarTurnoForm(forms.ModelForm):
         ):
             self.add_error("fecha_asistencia", f"Los turnos deben comenzar en intervalos de {intervalo} minutos.")
 
-        if self.paciente and tratamiento.requiere_plan:
+        if self.paciente and tratamiento.agenda_categoria != Tratamiento.AgendaCategoria.CONSULTORIO:
             indicaciones = Evolucion.objects.filter(
                 historia_clinica__paciente=self.paciente,
                 tratamiento_indicado=tratamiento,
@@ -163,6 +214,24 @@ class AgendarTurnoForm(forms.ModelForm):
                 self.add_error("tratamiento", "Este tratamiento debe estar indicado por un médico antes de agendar.")
                 return cleaned
             cleaned["indicacion_medica"] = indicacion
+
+            if not puede_agendar_tratamiento(
+                self.paciente,
+                tratamiento,
+                turno_actual=self.instance if self.instance.pk else None,
+            ):
+                categoria_incompatible = {
+                    Tratamiento.AgendaCategoria.NTF: "PRP",
+                    Tratamiento.AgendaCategoria.PRP: "NTF",
+                }.get(tratamiento.agenda_categoria)
+                self.add_error(
+                    "tratamiento",
+                    f"No se puede agendar {tratamiento} mientras el paciente tenga "
+                    f"{categoria_incompatible} activo o en curso.",
+                )
+                return cleaned
+
+        if self.paciente and tratamiento.requiere_plan:
             plan = PlanPago.objects.filter(
                 dni=self.paciente,
                 tratamiento=tratamiento,
@@ -173,7 +242,11 @@ class AgendarTurnoForm(forms.ModelForm):
 
         conflicto = False
         for otro in Turno.objects.filter(
-            estado__in=[Turno.Estado.RESERVADO, Turno.Estado.ASIGNADO]
+            estado__in=[
+                Turno.Estado.RESERVADO,
+                Turno.Estado.ASIGNADO,
+                Turno.Estado.PRESENTE,
+            ]
         ).exclude(pk=self.instance.pk):
             otro_inicio = otro.fecha_asistencia
             otra_duracion = (

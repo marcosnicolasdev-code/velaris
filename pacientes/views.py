@@ -2,6 +2,7 @@ from datetime import date, datetime, time, timedelta
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.utils import timezone
@@ -12,13 +13,14 @@ from django.urls import reverse
 import unicodedata
 import re
 
-from .models import Paciente, Evolucion, NotaAgenda, Turno
+from .models import Paciente, Evolucion, Turno
 from .forms import (
     PacienteForm,
     TurnoForm,
     AgendarTurnoForm,
     SeleccionarPacienteTurnoForm,
     TratamientoIndicadoForm,
+    puede_agendar_tratamiento,
 )
 from usuarios.models import Profesional
 from tratamientos.models import Tratamiento, PlanPago
@@ -33,16 +35,27 @@ def _normalizar_busqueda(texto):
 
 
 def _filtrar_pacientes_por_busqueda(pacientes, consulta):
-    busqueda = _normalizar_busqueda(consulta)
+    busqueda = " ".join(_normalizar_busqueda(consulta).split())
     if not busqueda:
         return pacientes
-    return [
-        paciente
-        for paciente in pacientes
-        if busqueda in _normalizar_busqueda(paciente.dni)
-        or busqueda in _normalizar_busqueda(paciente.nombre_paciente)
-        or busqueda in _normalizar_busqueda(paciente.apellido_paciente)
-    ]
+
+    def coincide(paciente):
+        nombre = _normalizar_busqueda(paciente.nombre_paciente)
+        apellido = _normalizar_busqueda(paciente.apellido_paciente)
+        palabras = busqueda.split()
+        nombre_y_apellido = (
+            all(palabra in f"{nombre} {apellido}" for palabra in palabras)
+            and any(palabra in nombre for palabra in palabras)
+            and any(palabra in apellido for palabra in palabras)
+        )
+        return (
+            busqueda in _normalizar_busqueda(paciente.dni)
+            or busqueda in nombre
+            or busqueda in apellido
+            or nombre_y_apellido
+        )
+
+    return [paciente for paciente in pacientes if coincide(paciente)]
 
 
 @login_required
@@ -62,8 +75,89 @@ def paciente_lista(request):
 def paciente_detalle(request, dni):
     paciente = get_object_or_404(Paciente, dni=dni)
     turnos = Turno.objects.filter(paciente=paciente).order_by("-fecha_asistencia")
-    planes = PlanPago.objects.filter(dni=paciente).order_by("-fecha_inicio_tratamiento", "-id_plan")
-    plan_actual = planes.filter(estado="activo").first() or planes.first()
+    planes = PlanPago.objects.filter(dni=paciente).select_related("tratamiento").order_by(
+        "-fecha_inicio_tratamiento", "-id_plan"
+    )
+    tratamientos_en_curso = [
+        {
+            "tratamiento": plan.tratamiento,
+            "sesiones_realizadas": plan.sesiones_consumidas,
+            "sesiones_total": plan.sesiones_total,
+            "sesiones_restantes": plan.sesiones_restantes,
+        }
+        for plan in planes
+        if plan.estado == "activo"
+        and plan.sesiones_consumidas < plan.sesiones_total
+        and (
+            plan.sesiones_consumidas > 0
+            or Turno.objects.filter(
+                plan=plan,
+                estado=Turno.Estado.PRESENTE,
+            ).exists()
+        )
+    ]
+    turnos_tratamiento_realizados = (
+        Turno.objects.filter(
+            paciente=paciente,
+            estado=Turno.Estado.FINALIZADO,
+        )
+        .exclude(tratamiento__agenda_categoria=Tratamiento.AgendaCategoria.CONSULTORIO)
+        .select_related("tratamiento")
+        .order_by("-fecha_asistencia")
+    )
+    mtc_realizados = turnos_tratamiento_realizados.filter(
+        tratamiento__agenda_categoria=Tratamiento.AgendaCategoria.MTC
+    )
+    mtc_realizados_lista = list(mtc_realizados)
+    mtc_realizados_cantidad = len(mtc_realizados_lista)
+    mtc_realizados_anios = "-".join(
+        str(anio)
+        for anio in sorted(
+            {
+                timezone.localtime(turno.fecha_asistencia).year
+                for turno in mtc_realizados_lista
+            },
+            reverse=True,
+        )
+    )
+    tratamientos_con_plan_activo = {
+        plan.tratamiento_id for plan in planes if plan.estado == "activo"
+    }
+    tratamientos_sin_plan_realizados = (
+        turnos_tratamiento_realizados.filter(plan__isnull=True)
+        .values_list("tratamiento_id", flat=True)
+        .distinct()
+    )
+    tratamientos_sin_plan_presentes = set(Turno.objects.filter(
+        paciente=paciente,
+        plan__isnull=True,
+        estado=Turno.Estado.PRESENTE,
+    ).exclude(
+        tratamiento__agenda_categoria=Tratamiento.AgendaCategoria.CONSULTORIO
+    ).values_list("tratamiento_id", flat=True))
+    for tratamiento in Tratamiento.objects.filter(
+        pk__in=set(tratamientos_sin_plan_realizados) | set(tratamientos_sin_plan_presentes)
+    ):
+        sesiones_realizadas = turnos_tratamiento_realizados.filter(
+            tratamiento=tratamiento,
+            plan__isnull=True,
+        ).count()
+        if (
+            tratamiento.pk not in tratamientos_con_plan_activo
+            and sesiones_realizadas < tratamiento.sesion_tratamiento
+            and (
+                sesiones_realizadas
+                or tratamiento.pk in tratamientos_sin_plan_presentes
+            )
+        ):
+            tratamientos_en_curso.append(
+                {
+                    "tratamiento": tratamiento,
+                    "sesiones_realizadas": sesiones_realizadas,
+                    "sesiones_total": tratamiento.sesion_tratamiento,
+                    "sesiones_restantes": tratamiento.sesion_tratamiento - sesiones_realizadas,
+                }
+            )
     historia = paciente.get_historia_clinica()
     evoluciones = (
         historia.evoluciones
@@ -71,7 +165,6 @@ def paciente_detalle(request, dni):
         .order_by("-fecha_evolucion", "-created_at")
     )
     for evolucion in evoluciones:
-        lineas = evolucion.descripcion.splitlines()
         etiquetas_clinicas = {
             "Pte.:",
             "Pte. se acerca por:",
@@ -79,16 +172,27 @@ def paciente_detalle(request, dni):
             "Examen físico:",
             "Se le indica:",
         }
-        evolucion.primera_linea = next(
-            (
-                linea.strip()
-                for linea in lineas
-                if linea.strip()
-                and linea.strip() not in etiquetas_clinicas
-                and not linea.strip().startswith("Pte.")
-            ),
-            "Sin descripción.",
+        refiere = re.search(
+            r"^(?:Paciente refiere|Pte\.(?:\s*(?:se acerca por|refiere))?)\s*:\s*"
+            r"(.*?)(?=^\s*(?:Antecedentes|Examen físico|Se le indica|Pte\. realiza)\s*:|\Z)",
+            evolucion.descripcion,
+            flags=re.MULTILINE | re.DOTALL | re.IGNORECASE,
         )
+        if refiere:
+            evolucion.primera_linea = (
+                f"Paciente refiere: {refiere.group(1).strip()}".strip()
+            )
+        else:
+            evolucion.primera_linea = next(
+                (
+                    linea.strip()
+                    for linea in evolucion.descripcion.splitlines()
+                    if linea.strip()
+                    and linea.strip() not in etiquetas_clinicas
+                    and not linea.strip().startswith("Pte.")
+                ),
+                "Sin descripción.",
+            )
     grupos_clinicos = {"medico", "enfermero", "instrumentador"}
     grupos_recepcion = {"recepcionista", "administrativo"}
     nombres_grupos = {
@@ -109,19 +213,29 @@ def paciente_detalle(request, dni):
         evoluciones_indicacion__historia_clinica__paciente=paciente,
     ).distinct()
     planes_activos = PlanPago.objects.filter(dni=paciente, estado="activo")
-    tratamientos_sin_plan = [
-        tratamiento
-        for tratamiento in tratamientos_indicados
-        if not planes_activos.filter(tratamiento=tratamiento).exists()
-    ]
+    tratamientos_sin_plan = []
+    for tratamiento in tratamientos_indicados:
+        categoria_opuesta = {
+            Tratamiento.AgendaCategoria.NTF: Tratamiento.AgendaCategoria.PRP,
+            Tratamiento.AgendaCategoria.PRP: Tratamiento.AgendaCategoria.NTF,
+        }.get(tratamiento.agenda_categoria)
+        hay_plan_activo_mismo = planes_activos.filter(
+            tratamiento=tratamiento
+        ).exists()
+        hay_plan_activo_opuesto = (
+            planes_activos.filter(
+                tratamiento__agenda_categoria=categoria_opuesta
+            ).exists()
+            if categoria_opuesta
+            else False
+        )
+        if not hay_plan_activo_mismo and not hay_plan_activo_opuesto:
+            tratamientos_sin_plan.append(tratamiento)
     puede_crear_medica = (
         request.user.is_superuser
         or bool(grupos_clinicos & nombres_grupos)
     )
-    puede_asignar_tratamiento = (
-        request.user.is_superuser
-        or bool(grupos_clinicos & nombres_grupos)
-    )
+    puede_gestionar_turnos = _puede_gestionar_agenda(request.user)
     puede_crear_privada = (
         not puede_crear_medica
         and (
@@ -139,10 +253,13 @@ def paciente_detalle(request, dni):
             "historia": historia,
             "evoluciones": evoluciones,
             "planes": planes,
-            "plan_actual": plan_actual,
+            "tratamientos_en_curso": tratamientos_en_curso,
+            "turnos_tratamiento_realizados": turnos_tratamiento_realizados,
+            "mtc_realizados_cantidad": mtc_realizados_cantidad,
+            "mtc_realizados_anios": mtc_realizados_anios,
             "puede_crear_privada": puede_crear_privada,
             "puede_crear_medica": puede_crear_medica,
-            "puede_asignar_tratamiento": puede_asignar_tratamiento,
+            "puede_gestionar_turnos": puede_gestionar_turnos,
             "puede_cobrar_plan": puede_cobrar_plan,
             "tratamientos_sin_plan": tratamientos_sin_plan,
         },
@@ -159,29 +276,32 @@ def evolucion_detalle(request, dni, evolucion_id):
     )
     secciones = []
     etiquetas = [
-        "Pte.:",
+        "Paciente refiere:",
         "Pte. realiza:",
         "Antecedentes:",
         "Examen físico:",
         "Se le indica:",
     ]
     texto = re.sub(
-        r"^Pte\.(?: se acerca por| refiere):",
-        "Pte.:",
+        r"^(?:Paciente refiere|Pte\.?\s*(?:se acerca por|refiere)):",
+        "Paciente refiere:",
         evolucion.descripcion,
         count=1,
         flags=re.MULTILINE,
     )
-    for posicion, etiqueta in enumerate(etiquetas):
+    etiquetas_encontradas = []
+    for etiqueta in etiquetas:
         inicio = texto.find(etiqueta)
-        if inicio == -1:
-            continue
+        if inicio != -1:
+            etiquetas_encontradas.append((inicio, etiqueta))
+    etiquetas_encontradas.sort()
+    for posicion, (inicio, etiqueta) in enumerate(etiquetas_encontradas):
         contenido_inicio = inicio + len(etiqueta)
-        contenido_fin = len(texto)
-        if posicion + 1 < len(etiquetas):
-            siguiente_inicio = texto.find(etiquetas[posicion + 1], contenido_inicio)
-            if siguiente_inicio != -1:
-                contenido_fin = siguiente_inicio
+        contenido_fin = (
+            etiquetas_encontradas[posicion + 1][0]
+            if posicion + 1 < len(etiquetas_encontradas)
+            else len(texto)
+        )
         secciones.append(
             {
                 "etiqueta": etiqueta,
@@ -516,6 +636,32 @@ def turno_editar(request, dni, turno_id):
         {"paciente": paciente, "form": form, "edicion": True, "turno": turno},
     )
 
+
+def _actualizar_estado_turno(turno_id, estado):
+    with transaction.atomic():
+        turno = Turno.objects.select_for_update().get(pk=turno_id)
+        estados_pendientes = {Turno.Estado.RESERVADO, Turno.Estado.ASIGNADO}
+        transiciones = {
+            Turno.Estado.PRESENTE: estados_pendientes,
+            Turno.Estado.CANCELADO: estados_pendientes | {Turno.Estado.PRESENTE},
+            Turno.Estado.FINALIZADO: {Turno.Estado.PRESENTE},
+        }
+        if turno.estado not in transiciones.get(estado, set()):
+            return False
+
+        if estado == Turno.Estado.FINALIZADO and turno.plan_id:
+            plan = PlanPago.objects.select_for_update().get(pk=turno.plan_id)
+            if plan.sesiones_consumidas < plan.sesiones_total:
+                plan.sesiones_consumidas += 1
+                if plan.sesiones_consumidas >= plan.sesiones_total:
+                    plan.estado = "completado"
+                plan.save(update_fields=["sesiones_consumidas", "estado"])
+
+        turno.estado = estado
+        turno.save(update_fields=["estado"])
+        return True
+
+
 @login_required
 def finalizar_turno(request, dni, turno_id):
     if not _puede_gestionar_agenda(request.user):
@@ -524,23 +670,18 @@ def finalizar_turno(request, dni, turno_id):
     turno = get_object_or_404(Turno, id=turno_id, paciente=paciente)
 
     if request.method == "POST":
-        with transaction.atomic():
-            if turno.estado not in {Turno.Estado.RESERVADO, Turno.Estado.ASIGNADO}:
-                return redirect("agenda")
-            turno.estado = Turno.Estado.FINALIZADO
-            turno.save(update_fields=["estado"])
-
-            # si el turno es de un plan, descontar una sesión
-            if turno.plan:
-                plan = turno.plan
-                plan.sesiones_consumidas += 1
-                if plan.sesiones_consumidas >= plan.sesiones_total:
-                    plan.estado = "completado"
-                plan.save()
-
+        if not _actualizar_estado_turno(turno_id, Turno.Estado.FINALIZADO):
+            messages.error(request, "Para completar el turno, primero marcá al paciente como presente.")
         return redirect("paciente_detalle", dni=paciente.dni)
 
-    return render(request, "pacientes/finalizar_turno.html", {"turno": turno, "paciente": paciente})
+    if turno.estado != Turno.Estado.PRESENTE:
+        messages.error(request, "Para completar el turno, primero marcá al paciente como presente.")
+        return redirect("paciente_detalle", dni=paciente.dni)
+    return render(
+        request,
+        "pacientes/finalizar_turno.html",
+        {"turno": turno, "paciente": paciente, "completado": True},
+    )
 
 #DELETE
 @login_required
@@ -550,9 +691,8 @@ def turno_borrar(request, dni, turno_id):
     paciente = get_object_or_404(Paciente, dni=dni)
     turno = get_object_or_404(Turno, id=turno_id, paciente=paciente)
     if request.method == "POST":
-        if turno.estado in {Turno.Estado.RESERVADO, Turno.Estado.ASIGNADO}:
-            turno.estado = Turno.Estado.CANCELADO
-            turno.save(update_fields=["estado"])
+        if not _actualizar_estado_turno(turno_id, Turno.Estado.CANCELADO):
+            messages.error(request, "No se puede cancelar este turno en su estado actual.")
         return redirect("agenda")
     return render(
         request,
@@ -566,7 +706,14 @@ def turno_borrar(request, dni, turno_id):
 def agenda(request):
     if not _puede_gestionar_agenda(request.user):
         raise PermissionDenied
-    return render(request, "pacientes/agenda.html")
+    tratamientos_consultorio = Tratamiento.objects.filter(
+        agenda_categoria=Tratamiento.AgendaCategoria.CONSULTORIO,
+    ).order_by("nombre_tratamiento")
+    return render(
+        request,
+        "pacientes/agenda.html",
+        {"tratamientos_consultorio": tratamientos_consultorio},
+    )
 
 
 @login_required
@@ -597,8 +744,17 @@ def nuevo_turno_agenda(request):
 def turnos_json(request):
     if not _puede_gestionar_agenda(request.user):
         raise PermissionDenied
+    try:
+        desde = date.fromisoformat(request.GET["start"][:10])
+        hasta = date.fromisoformat(request.GET["end"][:10])
+    except (KeyError, ValueError):
+        return JsonResponse({"error": "Se requiere un rango de fechas válido."}, status=400)
+
     categoria = request.GET.get("categoria", "")
-    turnos = Turno.objects.select_related("paciente", "tratamiento")
+    turnos = Turno.objects.select_related("paciente", "tratamiento").filter(
+        fecha_asistencia__date__gte=desde,
+        fecha_asistencia__date__lt=hasta,
+    ).exclude(estado=Turno.Estado.CANCELADO)
     if categoria and categoria != "todas":
         turnos = turnos.filter(tratamiento__agenda_categoria=categoria)
     eventos = []
@@ -620,77 +776,20 @@ def turnos_json(request):
                 "prestacion": turno.tratamiento.nombre_tratamiento,
                 "estado": turno.get_estado_display(),
                 "estadoCodigo": turno.estado,
-                "nota": turno.nota,
                 "editarUrl": reverse("turno_editar", kwargs={"dni": turno.paciente.dni, "turno_id": turno.pk}),
                 "estadoUrl": reverse("agenda_turno_estado", kwargs={"turno_id": turno.pk}),
-                "editable": turno.estado in {Turno.Estado.RESERVADO, Turno.Estado.ASIGNADO},
+                    "editable": turno.estado in {
+                        Turno.Estado.RESERVADO,
+                        Turno.Estado.ASIGNADO,
+                        Turno.Estado.PRESENTE,
+                    },
+                    "reagendable": turno.estado in {
+                        Turno.Estado.RESERVADO,
+                        Turno.Estado.ASIGNADO,
+                    },
             },
         })
     return JsonResponse (eventos, safe=False)
-
-
-@login_required
-def agenda_notas(request):
-    if not _puede_gestionar_agenda(request.user):
-        raise PermissionDenied
-
-    if request.method == "GET":
-        try:
-            desde = date.fromisoformat(request.GET["start"][:10])
-            hasta = date.fromisoformat(request.GET["end"][:10])
-        except (KeyError, ValueError):
-            return JsonResponse({"error": "Se requiere un rango de fechas válido."}, status=400)
-
-        eventos = []
-        for nota in NotaAgenda.objects.filter(fecha__gte=desde, fecha__lt=hasta).order_by("fecha", "id"):
-            usuario = nota.usuario.get_username() if nota.usuario_id else "Usuario desconocido"
-            eventos.append({
-                "id": f"nota-agenda-{nota.pk}",
-                "title": f"{usuario}: {nota.texto}",
-                "start": nota.fecha.isoformat(),
-                "allDay": True,
-                "backgroundColor": "#fff1c2",
-                "borderColor": "#d8b248",
-                "textColor": "#5e4b12",
-                "classNames": ["agenda-nota-del-dia"],
-                "extendedProps": {
-                    "notaAgenda": True,
-                    "notaId": nota.pk,
-                    "fecha": nota.fecha.isoformat(),
-                    "texto": nota.texto,
-                    "usuario": usuario,
-                },
-            })
-        return JsonResponse(eventos, safe=False)
-
-    if request.method != "POST":
-        return JsonResponse({"error": "Método no permitido."}, status=405)
-
-    try:
-        fecha = date.fromisoformat(request.POST.get("fecha", ""))
-    except ValueError:
-        return JsonResponse({"error": "La fecha no es válida."}, status=400)
-
-    texto = request.POST.get("texto", "").strip()
-    nota_id = request.POST.get("nota_id")
-    if len(texto) > 1000:
-        return JsonResponse({"error": "La nota no puede superar los 1000 caracteres."}, status=400)
-    if nota_id:
-        nota = get_object_or_404(NotaAgenda, pk=nota_id, fecha=fecha)
-        if texto:
-            nota.texto = texto
-            campos_actualizados = ["texto", "actualizado_en"]
-            if not nota.usuario_id:
-                nota.usuario = request.user
-                campos_actualizados.append("usuario")
-            nota.save(update_fields=campos_actualizados)
-        else:
-            nota.delete()
-    elif texto:
-        if NotaAgenda.objects.filter(fecha=fecha).count() >= 3:
-            return JsonResponse({"error": "Ya hay tres notas para este día."}, status=400)
-        NotaAgenda.objects.create(fecha=fecha, texto=texto, usuario=request.user)
-    return JsonResponse({"ok": True, "eliminada": not texto, "nota_id": nota_id or None})
 
 
 def _puede_gestionar_agenda(usuario):
@@ -713,6 +812,7 @@ def _color_estado_turno(estado):
     return {
         Turno.Estado.RESERVADO: "#d79b16",
         Turno.Estado.ASIGNADO: "#247a52",
+        Turno.Estado.PRESENTE: "#7651a8",
         Turno.Estado.FINALIZADO: "#3667a6",
         Turno.Estado.AUSENTE: "#bd4a43",
         Turno.Estado.CANCELADO: "#6c757d",
@@ -737,6 +837,12 @@ def agenda_pacientes_disponibles_json(request):
         pacientes = pacientes.filter(pk__in=pacientes_indicados)
 
     resultados = _filtrar_pacientes_por_busqueda(pacientes, consulta)[:30]
+    if tratamiento.agenda_categoria != Tratamiento.AgendaCategoria.CONSULTORIO:
+        resultados = [
+            paciente
+            for paciente in resultados
+            if puede_agendar_tratamiento(paciente, tratamiento)
+        ]
     return JsonResponse(
         [
             {
@@ -761,6 +867,12 @@ def agenda_asignar_turno_disponible(request):
     paciente = get_object_or_404(Paciente, dni=request.POST.get("dni"))
     tratamiento = get_object_or_404(Tratamiento, pk=request.POST.get("tratamiento"))
     indicacion = None
+    if not puede_agendar_tratamiento(paciente, tratamiento):
+        if tratamiento.agenda_categoria != Tratamiento.AgendaCategoria.CONSULTORIO:
+            return JsonResponse(
+                {"error": "El tratamiento no está indicado o es incompatible con un tratamiento activo/en curso."},
+                status=400,
+            )
     if tratamiento.agenda_categoria != Tratamiento.AgendaCategoria.CONSULTORIO:
         indicacion = Evolucion.objects.filter(
             historia_clinica__paciente=paciente,
@@ -811,10 +923,7 @@ def agenda_disponibilidad_json(request):
     if tratamiento_id:
         tratamiento = get_object_or_404(Tratamiento, pk=tratamiento_id)
         if tratamiento.agenda_categoria != Tratamiento.AgendaCategoria.CONSULTORIO:
-            if not paciente or not Evolucion.objects.filter(
-                historia_clinica__paciente=paciente,
-                tratamiento_indicado=tratamiento,
-            ).exists():
+            if not paciente or not puede_agendar_tratamiento(paciente, tratamiento):
                 raise PermissionDenied
 
         turnos_agenda = list(
@@ -829,7 +938,11 @@ def agenda_disponibilidad_json(request):
             turnos_agenda = [turno for turno in turnos_agenda if str(turno.pk) != turno_actual_id]
         ocupados = [
             turno for turno in turnos_agenda
-            if turno.estado in {Turno.Estado.RESERVADO, Turno.Estado.ASIGNADO}
+            if turno.estado in {
+                Turno.Estado.RESERVADO,
+                Turno.Estado.ASIGNADO,
+                Turno.Estado.PRESENTE,
+            }
         ]
         eventos = []
         fecha_actual = desde
@@ -915,7 +1028,6 @@ def agenda_disponibilidad_json(request):
                     "apellido": turno.paciente.apellido_paciente,
                     "telefono": turno.paciente.telefono,
                     "prestacion": turno.tratamiento.nombre_tratamiento,
-                    "nota": turno.nota,
                 },
             })
 
@@ -952,11 +1064,47 @@ def agenda_disponibilidad_json(request):
             turnos_ocupados_dia = list(
                 Turno.objects.select_related("tratamiento").filter(
                     tratamiento__agenda_categoria=categoria,
-                    estado__in=[Turno.Estado.RESERVADO, Turno.Estado.ASIGNADO],
+                    estado__in=[
+                        Turno.Estado.RESERVADO,
+                        Turno.Estado.ASIGNADO,
+                        Turno.Estado.PRESENTE,
+                    ],
                     fecha_asistencia__date=fecha_actual,
                 )
             )
             libres_categoria = 0
+            if categoria == Tratamiento.AgendaCategoria.CONSULTORIO:
+                for bloque in range(24):
+                    inicio_hora = (datetime.combine(fecha_actual, time(8)) + timedelta(minutes=30 * bloque)).time()
+                    inicio = timezone.make_aware(
+                        datetime.combine(fecha_actual, inicio_hora),
+                        timezone.get_current_timezone(),
+                    )
+                    fin = inicio + timedelta(minutes=30)
+                    ocupado = inicio <= timezone.now() or any(
+                        inicio < turno.fecha_asistencia + turno.tratamiento.duracion_tratamiento
+                        and turno.fecha_asistencia < fin
+                        for turno in turnos_ocupados_dia
+                    )
+                    if ocupado:
+                        continue
+                    libres_categoria += 1
+                    if modo_agenda:
+                        eventos.append({
+                            "title": "Consultorio",
+                            "start": inicio.isoformat(),
+                            "end": fin.isoformat(),
+                            "backgroundColor": "#dcefe4",
+                            "borderColor": "#77aa89",
+                            "textColor": "#24583a",
+                            "extendedProps": {
+                                "disponible": True,
+                                "categoria": categoria,
+                                "consultorioGeneral": True,
+                                "tratamientoNombre": "Consultorio",
+                            },
+                        })
+                tratamientos = []
             for tratamiento in tratamientos:
                 duracion = tratamiento.duracion_tratamiento
                 dia = fecha_actual.weekday()
@@ -1016,26 +1164,11 @@ def agenda_disponibilidad_json(request):
                                     "tratamientoNombre": tratamiento.nombre_tratamiento,
                                 },
                             })
-                libres_categoria += libres_dia
-                if not modo_agenda:
-                    eventos.append({
-                        "title": f"{tratamiento.nombre_tratamiento}: {libres_dia} disponibles",
-                        "start": fecha_actual.isoformat(),
-                        "allDay": True,
-                        "backgroundColor": "transparent",
-                        "borderColor": "transparent",
-                        "textColor": "#24583a",
-                        "extendedProps": {
-                            "disponible": False,
-                            "resumenTratamiento": True,
-                            "categoria": categoria,
-                            "tratamientoId": tratamiento.pk,
-                            "cantidadDisponible": libres_dia,
-                        },
-                    })
+                if categoria != Tratamiento.AgendaCategoria.CONSULTORIO:
+                    libres_categoria += libres_dia
             if not modo_agenda:
                 eventos.append({
-                    "title": f"{etiquetas[categoria]}: {libres_categoria} disponibles",
+                    "title": f"{etiquetas[categoria]}: {libres_categoria}",
                     "start": fecha_actual.isoformat(),
                     "allDay": True,
                     "backgroundColor": "transparent",
@@ -1056,30 +1189,23 @@ def agenda_disponibilidad_json(request):
 def agenda_turno_estado(request, turno_id):
     if not _puede_gestionar_agenda(request.user):
         raise PermissionDenied
-    turno = get_object_or_404(Turno, pk=turno_id)
-    if turno.estado not in {Turno.Estado.RESERVADO, Turno.Estado.ASIGNADO}:
-        return redirect("agenda")
-    if request.method == "POST":
-        estado = request.POST.get("estado")
-        estados_permitidos = {
-            Turno.Estado.RESERVADO,
-            Turno.Estado.ASIGNADO,
-            Turno.Estado.FINALIZADO,
-            Turno.Estado.AUSENTE,
-            Turno.Estado.CANCELADO,
-        }
-        if estado in estados_permitidos:
-            with transaction.atomic():
-                turno = Turno.objects.select_for_update().get(pk=turno_id)
-                estado_anterior = turno.estado
-                turno.estado = estado
-                turno.save(update_fields=["estado"])
-                if estado == Turno.Estado.FINALIZADO and estado_anterior != Turno.Estado.FINALIZADO and turno.plan_id:
-                    plan = PlanPago.objects.select_for_update().get(pk=turno.plan_id)
-                    if plan.sesiones_consumidas < plan.sesiones_total:
-                        plan.sesiones_consumidas += 1
-                        if plan.sesiones_consumidas >= plan.sesiones_total:
-                            plan.estado = "completado"
-                        plan.save(update_fields=["sesiones_consumidas", "estado"])
+    if request.method == "POST" and not _actualizar_estado_turno(
+        turno_id,
+        request.POST.get("estado"),
+    ):
+        messages.error(request, "No se pudo actualizar el turno en su estado actual.")
     return redirect("agenda")
 
+
+@login_required
+def turno_estado_paciente(request, dni, turno_id):
+    if not _puede_gestionar_agenda(request.user):
+        raise PermissionDenied
+    paciente = get_object_or_404(Paciente, dni=dni)
+    get_object_or_404(Turno, pk=turno_id, paciente=paciente)
+    if request.method == "POST" and not _actualizar_estado_turno(
+        turno_id,
+        request.POST.get("estado"),
+    ):
+        messages.error(request, "No se pudo actualizar el turno en su estado actual.")
+    return redirect(f"{reverse('paciente_detalle', kwargs={'dni': paciente.dni})}#turnos-panel")

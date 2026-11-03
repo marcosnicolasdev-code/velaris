@@ -46,7 +46,8 @@ class Turno(models.Model):
     class Estado(models.TextChoices):
         RESERVADO = "reservado", "Reservado"
         ASIGNADO = "asignado", "Asignado"
-        FINALIZADO = "finalizado", "Finalizado"
+        PRESENTE = "presente", "Presente"
+        FINALIZADO = "finalizado", "Completado"
         AUSENTE = "ausente", "Ausente"
         CANCELADO = "cancelado", "Cancelado"
 
@@ -168,5 +169,4 @@ class EvaluacionMedica(models.Model):
     )
     fecha_evaluacion = models.DateField()
     descripcion = models.TextField()
-
 

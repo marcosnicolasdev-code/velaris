@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% block titulo %}{% if cancelacion %}Cancelar{% else %}Finalizar{% endif %} turno — Velaris{% endblock %}
+{% block titulo %}{% if cancelacion %}Cancelar{% else %}Completado{% endif %} turno — Velaris{% endblock %}
 {% block contenido %}
-  <h1>{% if cancelacion %}¿Cancelar{% else %}¿Finalizar{% endif %} este turno?</h1>
+  <h1>{% if cancelacion %}¿Cancelar{% else %}¿Marcar como completado{% endif %} este turno?</h1>
   <p>{{ turno.paciente }} — {{ turno.tratamiento }} — {{ turno.fecha_asistencia }}</p>
   {% if cancelacion %}
     <p class="text-muted">El turno quedará en el historial y su horario volverá a estar disponible.</p>
@@ -11,7 +11,7 @@
   {% endif %}
   <form method="post">
     {% csrf_token %}
-    <button type="submit" class="btn {% if cancelacion %}btn-danger{% else %}btn-success{% endif %}">{% if cancelacion %}Sí, cancelar{% else %}Sí, finalizar{% endif %}</button>
+    <button type="submit" class="btn {% if cancelacion %}btn-danger{% else %}btn-success{% endif %}">{% if cancelacion %}Sí, cancelar{% else %}Sí, completado{% endif %}</button>
     <a href="{% url 'paciente_detalle' turno.paciente.dni %}" class="btn btn-secondary">Cancelar</a>
   </form>
 {% endblock %}

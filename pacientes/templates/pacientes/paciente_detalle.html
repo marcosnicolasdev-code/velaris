@@ -42,14 +42,27 @@
         </div>
         <div class="card-body">
           <ul class="list-group list-group-flush">
-            {% if plan_actual %}
-              <li class="list-group-item">{{ plan_actual.tratamiento }} — {{ plan_actual.sesiones_restantes }} sesiones restantes</li>
+            {% if tratamientos_en_curso %}
+              {% for curso in tratamientos_en_curso %}
+                <li class="list-group-item">
+                  {{ curso.tratamiento }} — {{ curso.sesiones_realizadas }} de
+                  {{ curso.sesiones_total }} sesiones realizadas
+                  ({{ curso.sesiones_restantes }} restantes)
+                </li>
+              {% endfor %}
             {% else %}
               <li class="list-group-item">Sin tratamientos activos.</li>
             {% endif %}
           </ul>
           {% if puede_cobrar_plan and tratamientos_sin_plan %}
             <a href="{% url 'planpago_cobrar' paciente.dni %}" class="btn btn-outline-primary mt-3">Registrar pago de tratamiento</a>
+          {% endif %}
+          <hr>
+          <h3 class="mb-2">MTC realizado</h3>
+          {% if mtc_realizados_cantidad %}
+            <p class="mb-0">MTC {{ mtc_realizados_cantidad }}: ({{ mtc_realizados_anios }})</p>
+          {% else %}
+            <p class="mb-0 text-muted">Sin MTC completados.</p>
           {% endif %}
         </div>
       </div>
@@ -117,22 +130,25 @@
         </div>
 
         <div class="tab-pane fade" id="tratamientos-panel" role="tabpanel">
-          <div class="d-flex justify-content-end mb-3">
-            {% if puede_asignar_tratamiento %}
-              <a href="{% url 'asignar_plan' paciente.dni %}" class="btn btn-primary">Asignar tratamiento</a>
-            {% endif %}
-          </div>
-          {% if plan_actual %}
-            <div class="card mb-3">
-              <div class="card-body">
-                <h3 class="h5">{{ plan_actual.tratamiento }}</h3>
-                <p class="mb-2">Estado: {{ plan_actual.get_estado_display }}</p>
-                <p class="mb-2">Sesiones: {{ plan_actual.sesiones_consumidas }} de {{ plan_actual.sesiones_total }} realizadas</p>
-                <p class="mb-0">Sesiones restantes: {{ plan_actual.sesiones_restantes }}</p>
-              </div>
+          <h3 class="h5">Historial de tratamientos realizados</h3>
+          {% if turnos_tratamiento_realizados %}
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr><th>Fecha</th><th>Tratamiento</th></tr>
+                </thead>
+                <tbody>
+                  {% for turno in turnos_tratamiento_realizados %}
+                    <tr>
+                      <td>{{ turno.fecha_asistencia|date:"d/m/Y H:i" }}</td>
+                      <td>{{ turno.tratamiento }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
             </div>
           {% else %}
-            <div class="alert alert-light">Este paciente no tiene un tratamiento asignado.</div>
+            <div class="alert alert-light">Este paciente todavía no tiene tratamientos realizados.</div>
           {% endif %}
         </div>
 
@@ -144,17 +160,36 @@
           <div class="table-responsive">
             <table class="table table-striped">
               <thead>
-                <tr><th>Fecha</th><th>Prestación</th><th>Estado</th><th></th></tr>
+                <tr><th>Fecha y hora</th><th>Prestación</th><th>Estado</th><th></th></tr>
               </thead>
               <tbody>
                 {% for turno in turnos %}
                   <tr>
-                    <td>{{ turno.fecha_asistencia|date:"d/m/Y H:i" }}</td>
+                    <td>{{ turno.fecha_asistencia|date:"d/m/Y, H:i" }}</td>
                     <td>{{ turno.tratamiento }}</td>
                     <td>{{ turno.get_estado_display }}</td>
                     <td>
-                      {% if turno.estado == "asignado" %}
-                        <a href="{% url 'finalizar_turno' paciente.dni turno.id %}" class="btn btn-sm btn-success">Finalizar</a>
+                      {% if puede_gestionar_turnos %}
+                        <div class="d-flex flex-wrap gap-1">
+                          {% if turno.estado == "reservado" or turno.estado == "asignado" %}
+                            <form method="post" action="{% url 'turno_estado_paciente' paciente.dni turno.id %}">
+                              {% csrf_token %}
+                              <button type="submit" name="estado" value="presente" class="btn btn-sm btn-success">Presente</button>
+                            </form>
+                          {% endif %}
+                          {% if turno.estado == "presente" %}
+                            <form method="post" action="{% url 'turno_estado_paciente' paciente.dni turno.id %}">
+                              {% csrf_token %}
+                              <button type="submit" name="estado" value="finalizado" class="btn btn-sm btn-primary">Completado</button>
+                            </form>
+                          {% endif %}
+                          {% if turno.estado == "reservado" or turno.estado == "asignado" or turno.estado == "presente" %}
+                            <form method="post" action="{% url 'turno_estado_paciente' paciente.dni turno.id %}">
+                              {% csrf_token %}
+                              <button type="submit" name="estado" value="cancelado" class="btn btn-sm btn-outline-danger" data-confirm-message="¿Desea cancelar el turno?" data-confirm-accept="Sí, cancelar turno">Cancelar</button>
+                            </form>
+                          {% endif %}
+                        </div>
                       {% endif %}
                     </td>
                   </tr>
@@ -173,4 +208,14 @@
     <a href="{% url 'paciente_lista' %}" class="btn btn-secondary">Volver</a>
   </div>
 
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      if (window.location.hash !== "#turnos-panel") return;
+      const tab = document.querySelector('[data-bs-target="#turnos-panel"]');
+      if (tab) bootstrap.Tab.getOrCreateInstance(tab).show();
+    });
+  </script>
 {% endblock %}

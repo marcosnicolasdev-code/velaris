@@ -29,6 +29,24 @@ class PlanPagoForm(forms.ModelForm):
                     estado="activo",
                 ).values_list("tratamiento_id", flat=True)
             )
+            categorias_activas = set(
+                PlanPago.objects.filter(
+                    dni=paciente,
+                    estado="activo",
+                ).values_list("tratamiento__agenda_categoria", flat=True)
+            )
+            if Tratamiento.AgendaCategoria.NTF in categorias_activas:
+                self.fields["tratamiento"].queryset = self.fields[
+                    "tratamiento"
+                ].queryset.exclude(
+                    agenda_categoria=Tratamiento.AgendaCategoria.PRP
+                )
+            if Tratamiento.AgendaCategoria.PRP in categorias_activas:
+                self.fields["tratamiento"].queryset = self.fields[
+                    "tratamiento"
+                ].queryset.exclude(
+                    agenda_categoria=Tratamiento.AgendaCategoria.NTF
+                )
 
     def clean(self):
         cleaned = super().clean()

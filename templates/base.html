@@ -86,10 +86,68 @@
   </nav>
   {% endif %}
   <main class="container my-4">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags|default:'info' }}{% endif %}" role="alert">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
     {% block contenido %}{% endblock %}
   </main>
+
+  <div class="modal fade" id="confirmacion-sistema-modal" tabindex="-1" aria-labelledby="confirmacion-sistema-titulo" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title fs-5" id="confirmacion-sistema-titulo">Confirmar acción</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body" id="confirmacion-sistema-mensaje"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, volver</button>
+          <button type="button" class="btn btn-danger" id="confirmacion-sistema-aceptar">Sí, cancelar turno</button>
+        </div>
+      </div>
+    </div>
+  </div>
   
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const modalElement = document.getElementById("confirmacion-sistema-modal");
+      const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+      const message = document.getElementById("confirmacion-sistema-mensaje");
+      const acceptButton = document.getElementById("confirmacion-sistema-aceptar");
+      let formToSubmit = null;
+      let submitter = null;
+
+      document.addEventListener("click", function (event) {
+        const button = event.target.closest("[data-confirm-message]");
+        if (!button) return;
+
+        event.preventDefault();
+        formToSubmit = button.form;
+        submitter = button;
+        message.textContent = button.dataset.confirmMessage;
+        acceptButton.textContent = button.dataset.confirmAccept || "Confirmar";
+        modal.show();
+      });
+
+      acceptButton.addEventListener("click", function () {
+        if (!formToSubmit) return;
+        const form = formToSubmit;
+        const button = submitter;
+        formToSubmit = null;
+        submitter = null;
+        modal.hide();
+        form.requestSubmit(button);
+      });
+
+      modalElement.addEventListener("hidden.bs.modal", function () {
+        formToSubmit = null;
+        submitter = null;
+      });
+    });
+  </script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

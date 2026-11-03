@@ -19,12 +19,12 @@ urlpatterns = [
     path("pacientes/<str:dni>/turno/<int:turno_id>/editar/", views.turno_editar, name="turno_editar"),
     path("pacientes/<str:dni>/turno/<int:turno_id>/borrar/", views.turno_borrar, name="turno_borrar"),
     path("pacientes/<str:dni>/turno/<int:turno_id>/finalizar/", views.finalizar_turno, name="finalizar_turno"),
+    path("pacientes/<str:dni>/turno/<int:turno_id>/estado/", views.turno_estado_paciente, name="turno_estado_paciente"),
 
 # AGENDA
     path("agenda/", views.agenda, name="agenda"),
     path("agenda/nuevo/", views.nuevo_turno_agenda, name="nuevo_turno_agenda"),
     path("agenda/turnos.json", views.turnos_json, name="turnos_json"),
-    path("agenda/notas.json", views.agenda_notas, name="agenda_notas"),
     path("agenda/pacientes-disponibles.json", views.agenda_pacientes_disponibles_json, name="agenda_pacientes_disponibles_json"),
     path("agenda/asignar-disponible.json", views.agenda_asignar_turno_disponible, name="agenda_asignar_turno_disponible"),
     path("agenda/disponibilidad.json", views.agenda_disponibilidad_json, name="agenda_disponibilidad_json"),

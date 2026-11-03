@@ -75,11 +75,11 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <form id="agenda-buscar-paciente-form" class="mb-3">
+                    <form id="agenda-buscar-paciente-form" class="mb-3" autocomplete="off">
                         {% csrf_token %}
                         <label for="agenda-paciente-busqueda" class="form-label">Buscar paciente por DNI, nombre o apellido</label>
                         <div class="input-group">
-                            <input type="search" id="agenda-paciente-busqueda" class="form-control" placeholder="DNI, nombre o apellido" required>
+                            <input type="search" id="agenda-paciente-busqueda" class="form-control" placeholder="DNI, nombre o apellido" required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                             <button type="submit" class="btn btn-primary">Buscar</button>
                         </div>
                     </form>

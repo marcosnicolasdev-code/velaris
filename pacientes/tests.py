@@ -508,6 +508,51 @@ class AgendaAvailabilityTests(TestCase):
 
         self.assertTrue(form.is_valid(), form.errors)
 
+    def test_primera_consulta_solo_para_pacientes_sin_turnos_previos(self):
+        paciente_nuevo = Paciente.objects.create(
+            dni="11223344",
+            nombre_paciente="Marina",
+            apellido_paciente="Pérez",
+            fecha_nacimiento="1995-11-02",
+            domicilio="Calle 99",
+            localidad="Rosario",
+            correo_electronico="marina@example.com",
+            telefono="3415551122",
+            obra_social="OSDE",
+            sexo="Femenino",
+        )
+
+        form_nuevo = AgendarTurnoForm(
+            {
+                "tratamiento": self.consulta.pk,
+                "fecha_asistencia": self.fecha_semana(10, 0),
+                "estado": Turno.Estado.RESERVADO,
+                "nota": "",
+            },
+            paciente=paciente_nuevo,
+        )
+        self.assertTrue(form_nuevo.is_valid(), form_nuevo.errors)
+
+        Turno.objects.create(
+            paciente=self.paciente,
+            tratamiento=self.consulta,
+            fecha_asistencia=timezone.now() + timedelta(days=2),
+            estado=Turno.Estado.ASIGNADO,
+        )
+
+        form_existente = AgendarTurnoForm(
+            {
+                "tratamiento": self.consulta.pk,
+                "fecha_asistencia": self.fecha_semana(11, 0),
+                "estado": Turno.Estado.RESERVADO,
+                "nota": "",
+            },
+            paciente=self.paciente,
+        )
+
+        self.assertFalse(form_existente.is_valid())
+        self.assertIn("tratamiento", form_existente.errors)
+
     def test_detalle_muestra_historial_y_tratamiento_en_curso_tras_turno_finalizado(self):
         usuario = User.objects.create_user(username="paciente_tratamientos")
         self.client.force_login(usuario)

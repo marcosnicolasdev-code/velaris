@@ -640,14 +640,38 @@ def turno_editar(request, dni, turno_id):
 def _actualizar_estado_turno(turno_id, estado):
     with transaction.atomic():
         turno = Turno.objects.select_for_update().get(pk=turno_id)
+        puede_corregir = turno.fecha_asistencia > timezone.now()
         estados_pendientes = {Turno.Estado.RESERVADO, Turno.Estado.ASIGNADO}
         transiciones = {
             Turno.Estado.PRESENTE: estados_pendientes,
             Turno.Estado.CANCELADO: estados_pendientes | {Turno.Estado.PRESENTE},
             Turno.Estado.FINALIZADO: {Turno.Estado.PRESENTE},
         }
-        if turno.estado not in transiciones.get(estado, set()):
+        estados_corregibles = {Turno.Estado.PRESENTE, Turno.Estado.FINALIZADO}
+        transicion_valida = turno.estado in transiciones.get(estado, set())
+        if estado in {Turno.Estado.RESERVADO, Turno.Estado.ASIGNADO}:
+            transicion_valida = (
+                turno.estado in estados_pendientes
+                and turno.estado != estado
+            ) or (
+                puede_corregir and turno.estado in estados_corregibles
+            )
+        elif estado == Turno.Estado.CANCELADO and puede_corregir:
+            transicion_valida = transicion_valida or turno.estado == Turno.Estado.FINALIZADO
+        if not transicion_valida:
             return False
+
+        if turno.estado == Turno.Estado.FINALIZADO and turno.plan_id:
+            plan = PlanPago.objects.select_for_update().get(pk=turno.plan_id)
+            finalizados = Turno.objects.filter(
+                plan=plan,
+                estado=Turno.Estado.FINALIZADO,
+            ).count()
+            if plan.sesiones_consumidas and finalizados <= plan.sesiones_consumidas:
+                plan.sesiones_consumidas -= 1
+                if plan.estado == "completado" and plan.sesiones_consumidas < plan.sesiones_total:
+                    plan.estado = "activo"
+                plan.save(update_fields=["sesiones_consumidas", "estado"])
 
         if estado == Turno.Estado.FINALIZADO and turno.plan_id:
             plan = PlanPago.objects.select_for_update().get(pk=turno.plan_id)
@@ -709,10 +733,32 @@ def agenda(request):
     tratamientos_consultorio = Tratamiento.objects.filter(
         agenda_categoria=Tratamiento.AgendaCategoria.CONSULTORIO,
     ).order_by("nombre_tratamiento")
+    reagendar_datos = None
+    turno_id = request.GET.get("reagendar")
+    if turno_id:
+        turno = get_object_or_404(
+            Turno.objects.select_related("paciente", "tratamiento"),
+            pk=turno_id,
+            estado__in=[Turno.Estado.RESERVADO, Turno.Estado.ASIGNADO],
+        )
+        reagendar_datos = {
+            "id": turno.pk,
+            "dni": turno.paciente.dni,
+            "nombre": turno.paciente.nombre_paciente,
+            "apellido": turno.paciente.apellido_paciente,
+            "tratamientoId": turno.tratamiento_id,
+            "prestacion": turno.tratamiento.nombre_tratamiento,
+            "categoria": turno.tratamiento.agenda_categoria,
+            "estado": turno.estado,
+            "fecha": timezone.localtime(turno.fecha_asistencia).date().isoformat(),
+        }
     return render(
         request,
         "pacientes/agenda.html",
-        {"tratamientos_consultorio": tratamientos_consultorio},
+        {
+            "tratamientos_consultorio": tratamientos_consultorio,
+            "reagendar_datos": reagendar_datos,
+        },
     )
 
 
@@ -763,7 +809,7 @@ def turnos_json(request):
         nombre = f"{turno.paciente.apellido_paciente}, {turno.paciente.nombre_paciente}"
         eventos.append({
             "id": turno.pk,
-            "title": f"{nombre} · {turno.get_estado_display()}",
+            "title": f"{turno.tratamiento.nombre_tratamiento} · {nombre}",
             "start": turno.fecha_asistencia.isoformat(),
             "end": (turno.fecha_asistencia + turno.tratamiento.duracion_tratamiento).isoformat(),
             "backgroundColor": color,
@@ -776,13 +822,21 @@ def turnos_json(request):
                 "prestacion": turno.tratamiento.nombre_tratamiento,
                 "estado": turno.get_estado_display(),
                 "estadoCodigo": turno.estado,
-                "editarUrl": reverse("turno_editar", kwargs={"dni": turno.paciente.dni, "turno_id": turno.pk}),
+                "historiaClinicaUrl": reverse("paciente_detalle", kwargs={"dni": turno.paciente.dni}),
+                "reagendarUrl": f"{reverse('agenda')}?reagendar={turno.pk}",
                 "estadoUrl": reverse("agenda_turno_estado", kwargs={"turno_id": turno.pk}),
-                    "editable": turno.estado in {
+                "editable": turno.estado in {
                         Turno.Estado.RESERVADO,
                         Turno.Estado.ASIGNADO,
                         Turno.Estado.PRESENTE,
-                    },
+                } or (
+                        turno.estado == Turno.Estado.FINALIZADO
+                        and turno.fecha_asistencia > timezone.now()
+                ),
+                "puedeCorregir": (
+                        turno.estado in {Turno.Estado.PRESENTE, Turno.Estado.FINALIZADO}
+                        and turno.fecha_asistencia > timezone.now()
+                ),
                     "reagendable": turno.estado in {
                         Turno.Estado.RESERVADO,
                         Turno.Estado.ASIGNADO,
@@ -866,6 +920,19 @@ def agenda_asignar_turno_disponible(request):
 
     paciente = get_object_or_404(Paciente, dni=request.POST.get("dni"))
     tratamiento = get_object_or_404(Tratamiento, pk=request.POST.get("tratamiento"))
+    turno_id = request.POST.get("turno")
+    turno = None
+    if turno_id:
+        turno = get_object_or_404(Turno, pk=turno_id, paciente=paciente)
+        if turno.estado not in {Turno.Estado.RESERVADO, Turno.Estado.ASIGNADO}:
+            return JsonResponse({"error": "Este turno ya no se puede reagendar."}, status=400)
+        if turno.tratamiento_id != tratamiento.pk:
+            return JsonResponse({"error": "No se puede cambiar la prestación al reagendar."}, status=400)
+        estado = turno.estado
+    else:
+        estado = request.POST.get("estado", Turno.Estado.ASIGNADO)
+        if estado not in {Turno.Estado.RESERVADO, Turno.Estado.ASIGNADO}:
+            return JsonResponse({"error": "Elegí Reservado o Asignado para el turno."}, status=400)
     indicacion = None
     if not puede_agendar_tratamiento(paciente, tratamiento):
         if tratamiento.agenda_categoria != Tratamiento.AgendaCategoria.CONSULTORIO:
@@ -888,9 +955,9 @@ def agenda_asignar_turno_disponible(request):
         {
             "tratamiento": tratamiento.pk,
             "fecha_asistencia": request.POST.get("fecha_asistencia", ""),
-            "estado": Turno.Estado.ASIGNADO,
-            "nota": "",
+            "estado": estado,
         },
+        instance=turno,
         paciente=paciente,
     )
     if not form.is_valid():
@@ -899,10 +966,12 @@ def agenda_asignar_turno_disponible(request):
 
     turno = form.save(commit=False)
     turno.paciente = paciente
-    turno.indicacion_medica = form.cleaned_data.get("indicacion_medica") or indicacion
-    turno.plan = form.cleaned_data.get("plan")
+    turno.indicacion_medica = (
+        form.cleaned_data.get("indicacion_medica", turno.indicacion_medica) or indicacion
+    )
+    turno.plan = form.cleaned_data.get("plan", turno.plan)
     turno.save()
-    return JsonResponse({"ok": True, "turnoId": turno.pk}, status=201)
+    return JsonResponse({"ok": True, "turnoId": turno.pk}, status=200 if turno_id else 201)
 
 
 @login_required

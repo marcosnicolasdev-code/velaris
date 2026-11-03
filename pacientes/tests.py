@@ -738,6 +738,120 @@ class AgendaAvailabilityTests(TestCase):
         )
         self.assertEqual(resumen_consultorio["extendedProps"]["cantidadDisponible"], 23)
 
+    def test_evento_de_turno_incluye_prestacion_y_nombre_del_paciente(self):
+        usuario = User.objects.create_user(username="recepcion_turno_detalle", password="test1234")
+        grupo, _ = Group.objects.get_or_create(name="Recepcionista")
+        usuario.groups.add(grupo)
+        self.client.force_login(usuario)
+        fecha = timezone.localdate() + timedelta(days=7)
+        while fecha.weekday() > 4:
+            fecha += timedelta(days=1)
+        inicio = timezone.make_aware(
+            timezone.datetime.combine(fecha, timezone.datetime.min.time().replace(hour=10))
+        )
+        Turno.objects.create(
+            paciente=self.paciente,
+            tratamiento=self.consulta,
+            fecha_asistencia=inicio,
+            estado=Turno.Estado.ASIGNADO,
+        )
+
+        respuesta = self.client.get(
+            reverse("turnos_json"),
+            {"start": fecha.isoformat(), "end": (fecha + timedelta(days=1)).isoformat()},
+        )
+
+        evento = respuesta.json()[0]
+        self.assertEqual(evento["title"], "Primera consulta · López, Sofía")
+        self.assertEqual(
+            evento["extendedProps"]["historiaClinicaUrl"],
+            reverse("paciente_detalle", kwargs={"dni": self.paciente.dni}),
+        )
+        self.assertEqual(
+            evento["extendedProps"]["reagendarUrl"],
+            f"{reverse('agenda')}?reagendar={evento['id']}",
+        )
+        self.assertEqual(
+            timezone.localtime(timezone.datetime.fromisoformat(evento["start"])),
+            inicio,
+        )
+        self.assertEqual(
+            timezone.localtime(timezone.datetime.fromisoformat(evento["end"])),
+            inicio + self.consulta.duracion_tratamiento,
+        )
+
+    def test_agenda_abre_preparada_para_reagendar_el_mismo_turno(self):
+        usuario = User.objects.create_user(username="recepcion_reagendar", password="test1234")
+        grupo, _ = Group.objects.get_or_create(name="Recepcionista")
+        usuario.groups.add(grupo)
+        self.client.force_login(usuario)
+        fecha = timezone.localdate() + timedelta(days=7)
+        while fecha.weekday() > 4:
+            fecha += timedelta(days=1)
+        inicio = timezone.make_aware(
+            timezone.datetime.combine(fecha, timezone.datetime.min.time().replace(hour=10))
+        )
+        turno = Turno.objects.create(
+            paciente=self.paciente,
+            tratamiento=self.consulta,
+            fecha_asistencia=inicio,
+            estado=Turno.Estado.RESERVADO,
+        )
+
+        respuesta = self.client.get(reverse("agenda"), {"reagendar": turno.pk})
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(respuesta.context["reagendar_datos"]["id"], turno.pk)
+        self.assertEqual(respuesta.context["reagendar_datos"]["dni"], self.paciente.dni)
+        self.assertContains(respuesta, "Confirmar nuevo horario")
+        self.assertContains(respuesta, "agenda-reagendar-datos")
+        self.assertContains(respuesta, "Estás reagendando un turno")
+        self.assertContains(respuesta, self.consulta.nombre_tratamiento)
+        self.assertContains(respuesta, f"{self.paciente.apellido_paciente}, {self.paciente.nombre_paciente}")
+        self.assertContains(respuesta, "Cancelar reagendamiento")
+        self.assertContains(
+            respuesta,
+            f'href="{reverse("agenda")}" class="btn btn-outline-secondary">Cancelar reagendamiento</a>',
+        )
+
+    def test_reagendar_actualiza_el_mismo_turno_y_conserva_estado(self):
+        usuario = User.objects.create_user(username="recepcion_actualiza_turno", password="test1234")
+        grupo, _ = Group.objects.get_or_create(name="Recepcionista")
+        usuario.groups.add(grupo)
+        self.client.force_login(usuario)
+        fecha = timezone.localdate() + timedelta(days=7)
+        while fecha.weekday() > 4:
+            fecha += timedelta(days=1)
+        inicio = timezone.make_aware(
+            timezone.datetime.combine(fecha, timezone.datetime.min.time().replace(hour=10))
+        )
+        turno = Turno.objects.create(
+            paciente=self.paciente,
+            tratamiento=self.consulta,
+            fecha_asistencia=inicio,
+            estado=Turno.Estado.RESERVADO,
+        )
+
+        respuesta = self.client.post(
+            reverse("agenda_asignar_turno_disponible"),
+            {
+                "dni": self.paciente.dni,
+                "tratamiento": self.consulta.pk,
+                "fecha_asistencia": f"{fecha.isoformat()}T10:30",
+                "turno": turno.pk,
+            },
+        )
+
+        self.assertEqual(respuesta.status_code, 200, respuesta.content)
+        self.assertEqual(respuesta.json()["turnoId"], turno.pk)
+        turno.refresh_from_db()
+        self.assertEqual(Turno.objects.filter(pk=turno.pk).count(), 1)
+        self.assertEqual(turno.paciente, self.paciente)
+        self.assertEqual(turno.tratamiento, self.consulta)
+        self.assertEqual(timezone.localtime(turno.fecha_asistencia).time().hour, 10)
+        self.assertEqual(timezone.localtime(turno.fecha_asistencia).time().minute, 30)
+        self.assertEqual(turno.estado, Turno.Estado.RESERVADO)
+
     def test_agenda_filtrada_muestra_resumenes_y_horarios_de_categoria(self):
         usuario = User.objects.create_user(username="recepcion_agenda_filtrada", password="secret123")
         grupo, _ = Group.objects.get_or_create(name="Recepcionista")
@@ -944,12 +1058,128 @@ class AgendaAvailabilityTests(TestCase):
         )
         self.client.post(
             reverse("agenda_turno_estado", kwargs={"turno_id": turno.pk}),
-            {"estado": Turno.Estado.CANCELADO},
+            {"estado": Turno.Estado.FINALIZADO},
         )
 
         plan.refresh_from_db()
         turno.refresh_from_db()
         self.assertEqual(plan.sesiones_consumidas, 1)
+        self.assertEqual(turno.estado, Turno.Estado.FINALIZADO)
+
+    def test_agenda_permite_volver_a_asignado_un_turno_presente_futuro(self):
+        usuario = User.objects.create_user(username="recepcion_corrige_presente")
+        grupo, _ = Group.objects.get_or_create(name="Recepcionista")
+        usuario.groups.add(grupo)
+        self.client.force_login(usuario)
+        turno = Turno.objects.create(
+            paciente=self.paciente,
+            tratamiento=self.ntf,
+            indicacion_medica=self.indicacion,
+            fecha_asistencia=timezone.now() + timedelta(days=8),
+            estado=Turno.Estado.PRESENTE,
+        )
+        eventos = self.client.get(
+            reverse("turnos_json"),
+            {
+                "start": timezone.localdate().isoformat(),
+                "end": (timezone.localdate() + timedelta(days=10)).isoformat(),
+            },
+        ).json()
+        evento = next(evento for evento in eventos if evento["id"] == turno.pk)
+        self.assertTrue(evento["extendedProps"]["editable"])
+        self.assertTrue(evento["extendedProps"]["puedeCorregir"])
+
+        respuesta = self.client.post(
+            reverse("agenda_turno_estado", kwargs={"turno_id": turno.pk}),
+            {"estado": Turno.Estado.ASIGNADO},
+        )
+
+        self.assertRedirects(respuesta, reverse("agenda"))
+        turno.refresh_from_db()
+        self.assertEqual(turno.estado, Turno.Estado.ASIGNADO)
+
+    def test_agenda_permite_corregir_completado_futuro_y_restituye_sesion(self):
+        usuario = User.objects.create_user(username="recepcion_corrige_completado")
+        grupo, _ = Group.objects.get_or_create(name="Recepcionista")
+        usuario.groups.add(grupo)
+        self.client.force_login(usuario)
+        plan = PlanPago.objects.create(
+            dni=self.paciente,
+            tratamiento=self.ntf,
+            valor_sesion=100,
+            sesiones_total=12,
+            sesiones_consumidas=1,
+        )
+        turno = Turno.objects.create(
+            paciente=self.paciente,
+            tratamiento=self.ntf,
+            plan=plan,
+            indicacion_medica=self.indicacion,
+            fecha_asistencia=timezone.now() + timedelta(days=8),
+            estado=Turno.Estado.FINALIZADO,
+        )
+
+        eventos = self.client.get(
+            reverse("turnos_json"),
+            {
+                "start": timezone.localdate().isoformat(),
+                "end": (timezone.localdate() + timedelta(days=10)).isoformat(),
+            },
+        ).json()
+        evento = next(evento for evento in eventos if evento["id"] == turno.pk)
+        self.assertTrue(evento["extendedProps"]["editable"])
+        self.assertTrue(evento["extendedProps"]["puedeCorregir"])
+
+        respuesta = self.client.post(
+            reverse("agenda_turno_estado", kwargs={"turno_id": turno.pk}),
+            {"estado": Turno.Estado.ASIGNADO},
+        )
+
+        self.assertRedirects(respuesta, reverse("agenda"))
+        turno.refresh_from_db()
+        plan.refresh_from_db()
+        self.assertEqual(turno.estado, Turno.Estado.ASIGNADO)
+        self.assertEqual(plan.sesiones_consumidas, 0)
+
+        respuesta = self.client.post(
+            reverse("agenda_turno_estado", kwargs={"turno_id": turno.pk}),
+            {"estado": Turno.Estado.CANCELADO},
+        )
+        self.assertRedirects(respuesta, reverse("agenda"))
+        turno.refresh_from_db()
+        self.assertEqual(turno.estado, Turno.Estado.CANCELADO)
+
+    def test_no_permite_corregir_completado_de_fecha_pasada(self):
+        usuario = User.objects.create_user(username="recepcion_no_corrige_pasado")
+        grupo, _ = Group.objects.get_or_create(name="Recepcionista")
+        usuario.groups.add(grupo)
+        self.client.force_login(usuario)
+        turno = Turno.objects.create(
+            paciente=self.paciente,
+            tratamiento=self.ntf,
+            indicacion_medica=self.indicacion,
+            fecha_asistencia=timezone.now() - timedelta(days=1),
+            estado=Turno.Estado.FINALIZADO,
+        )
+
+        eventos = self.client.get(
+            reverse("turnos_json"),
+            {
+                "start": (timezone.localdate() - timedelta(days=2)).isoformat(),
+                "end": timezone.localdate().isoformat(),
+            },
+        ).json()
+        evento = next(evento for evento in eventos if evento["id"] == turno.pk)
+        self.assertFalse(evento["extendedProps"]["editable"])
+        self.assertFalse(evento["extendedProps"]["puedeCorregir"])
+
+        respuesta = self.client.post(
+            reverse("agenda_turno_estado", kwargs={"turno_id": turno.pk}),
+            {"estado": Turno.Estado.ASIGNADO},
+        )
+
+        self.assertRedirects(respuesta, reverse("agenda"))
+        turno.refresh_from_db()
         self.assertEqual(turno.estado, Turno.Estado.FINALIZADO)
 
     def test_presente_aparece_en_curso_y_habilita_completar_desde_historia(self):

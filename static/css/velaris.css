@@ -143,6 +143,73 @@ main.container {
     font-weight: 500;
 }
 
+.patient-section-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.mtc-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.treatment-section-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.section-title-icon,
+.mtc-title-icon,
+.treatment-section-icon,
+.submenu-icon,
+.info-item-icon,
+.edit-action-icon,
+.payment-action-icon {
+    width: 1em;
+    height: 1em;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.75;
+    transform: translateY(-0.04em);
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.section-title-icon {
+    width: 1.05em;
+    height: 1.05em;
+}
+
+.info-item-icon {
+    width: 1.2em;
+    height: 1.2em;
+}
+
+.submenu-icon {
+    width: 1.15em;
+    height: 1.15em;
+}
+
+.edit-action-icon,
+.payment-action-icon {
+    width: 1.15em;
+    height: 1.15em;
+}
+
+.patient-info-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    line-height: 1.5;
+}
+
 h1 {
     color: #14213d;
     font-size: clamp(2rem, 4vw, 2.6rem);
@@ -160,6 +227,11 @@ h2 {
 .patient-submenu-wrap {
     width: 100%;
     margin-bottom: 0;
+    background: #fff;
+    border: 1px solid #e8ebf0;
+    border-radius: 16px;
+    box-shadow: 0 12px 32px rgba(13, 36, 67, 0.08);
+    overflow: hidden;
 }
 
 .patient-submenu {
@@ -167,14 +239,29 @@ h2 {
     width: 100%;
     max-width: 100%;
     gap: clamp(0.35rem, 1.5vw, 1.4rem);
-    padding: 0 0.75rem;
-    border: 1px solid #e8ebf0;
-    border-bottom: 0;
-    border-radius: 16px 16px 0 0;
+    padding: 0.75rem 0.75rem 0;
     background: #fff;
+    border-bottom: 1px solid #e8ebf0;
     overflow-x: auto;
     overflow-y: hidden;
     box-sizing: border-box;
+}
+
+.submenu-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.submenu-icon {
+    width: 1.15em;
+    height: 1.15em;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
 }
 
 .full-width-content {
@@ -199,8 +286,10 @@ h2 {
     position: relative;
     flex: 0 0 auto;
     min-width: 5rem;
-    background: transparent;
-    border: none;
+    background: #fff;
+    border: 1px solid #e8ebf0;
+    border-bottom: 0;
+    border-radius: 12px 12px 0 0;
     color: #4b5563;
     font-size: 0.98rem;
     font-weight: 500;
@@ -208,7 +297,7 @@ h2 {
     text-align: center;
     cursor: pointer;
     white-space: nowrap;
-    transition: color 0.18s ease;
+    transition: color 0.18s ease, background-color 0.18s ease;
 }
 
 .submenu-item:last-child {
@@ -241,6 +330,25 @@ h2 {
     border-color: #f4d445;
     color: #1b1b1b;
     font-weight: 500;
+}
+
+.edit-action-btn,
+.payment-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.edit-action-icon,
+.payment-action-icon {
+    width: 1.15em;
+    height: 1.15em;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
 }
 
 .card {
@@ -542,6 +650,30 @@ main.container .table thead th {
     font-weight: 600;
 }
 
+.field-label-with-icon {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 -0.55rem 0.85rem !important;
+    padding: 0 0.35rem;
+    background: #fff;
+    color: #14213d;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.field-icon {
+    width: 1em;
+    height: 1em;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+    transform: translateY(-0.04em);
+}
+
 .patient-form-field .form-control,
 .patient-form-field .form-select {
     min-height: 48px;
@@ -733,6 +865,24 @@ main.container .table thead th {
     font-weight: 600;
 }
 
+.summary-label-with-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.summary-icon {
+    width: 1.35em;
+    height: 1.35em;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+    transform: translateY(-0.04em);
+}
+
 .financial-summary-value {
     color: #14213d;
     font-size: clamp(1.5rem, 3vw, 2rem);
@@ -742,6 +892,102 @@ main.container .table thead th {
 .welcome-card {
     max-width: 900px;
     margin-inline: auto;
+}
+
+.dashboard-summary-row {
+    max-width: 1100px;
+    margin: 1.2rem auto 0;
+}
+
+.dashboard-stat-card {
+    border: 1px solid rgba(17, 24, 39, 0.08);
+    border-radius: 16px;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+    overflow: hidden;
+}
+
+.dashboard-stat-primary {
+    border-top: 4px solid #1d4ed8;
+}
+
+.dashboard-stat-warning {
+    border-top: 4px solid #f59e0b;
+}
+
+.dashboard-stat-info {
+    border-top: 4px solid #0ea5e9;
+}
+
+.dashboard-stat-label {
+    margin-bottom: 0.3rem;
+    color: #64748b;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.dashboard-stat-value {
+    margin: 0;
+    color: #0f172a;
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.sala-espera-card {
+    max-width: 1100px;
+    margin: 1.5rem auto 0;
+}
+
+.sala-espera-table thead th {
+    color: #4a5568;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: #f8fafc;
+}
+
+.sala-espera-table td,
+.sala-espera-table th {
+    padding-top: 0.9rem;
+    padding-bottom: 0.9rem;
+    vertical-align: middle;
+}
+
+.estado-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+    padding: 0.45rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.estado-reservado,
+.estado-asignado {
+    background: #e8f1ff;
+    color: #1d5fc8;
+}
+
+.estado-presente {
+    background: #eafaf1;
+    color: #1e7d52;
+}
+
+.estado-finalizado {
+    background: #eef2f7;
+    color: #475569;
+}
+
+.estado-cancelado,
+.estado-ausente {
+    background: #fdecec;
+    color: #b42318;
 }
 
 .auth-card {

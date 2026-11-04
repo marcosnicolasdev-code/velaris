@@ -16,6 +16,19 @@
         <a href="{% url 'nuevo_turno_agenda' %}" class="btn btn-primary">Nuevo turno</a>
     </div>
 
+    {% if reagendar_datos %}
+        <div class="alert alert-info d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3" role="status">
+            <div>
+                <strong>Estás reagendando un turno</strong>
+                <div>
+                    {{ reagendar_datos.prestacion }} de {{ reagendar_datos.apellido }}, {{ reagendar_datos.nombre }}.
+                    Elegí el nuevo horario y confirmalo.
+                </div>
+            </div>
+            <a href="{% url 'agenda' %}" class="btn btn-outline-secondary">Cancelar reagendamiento</a>
+        </div>
+    {% endif %}
+
   <div id="calendario"></div>
 
     <div class="d-flex flex-wrap gap-3 small text-muted mt-3" aria-label="Estados de turnos">
@@ -24,7 +37,6 @@
         <span><i class="agenda-status-dot" style="background:#7651a8"></i>Presente</span>
         <span><i class="agenda-status-dot" style="background:#3667a6"></i>Completado</span>
         <span><i class="agenda-status-dot" style="background:#bd4a43"></i>Ausente</span>
-        <span><i class="agenda-status-dot" style="background:#6c757d"></i>Cancelado</span>
     </div>
 
     <div class="modal fade" id="turno-detalle-modal" tabindex="-1" aria-labelledby="turno-detalle-titulo" aria-hidden="true">
@@ -45,12 +57,23 @@
                     </dl>
                 </div>
                 <div class="modal-footer justify-content-between">
-                    <a id="turno-reagendar" href="#" class="btn btn-outline-primary d-none">Reagendar</a>
-                    <form id="turno-estado-form" method="post" class="d-none d-flex align-items-center gap-2">
+                    <a id="turno-historia-clinica" href="#" class="btn btn-outline-secondary">Historia clínica</a>
+                    <form id="turno-estado-form" method="post" class="d-none align-items-center gap-2">
                         {% csrf_token %}
                         <button type="submit" name="estado" value="presente" id="turno-presente" class="btn btn-success">Presente</button>
                         <button type="submit" name="estado" value="finalizado" id="turno-completado" class="btn btn-primary">Completado</button>
-                        <button type="submit" name="estado" value="cancelado" id="turno-cancelar" class="btn btn-outline-danger">Cancelar</button>
+                        <div id="turno-acciones-dropdown" class="dropdown d-none">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Más opciones
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><button type="submit" name="estado" value="asignado" id="turno-asignado" class="dropdown-item d-none">Volver a Asignado</button></li>
+                                <li><button type="submit" name="estado" value="reservado" id="turno-reservado" class="dropdown-item d-none">Volver a Reservado</button></li>
+                                <li><a id="turno-reagendar" href="#" class="dropdown-item d-none">Reagendar</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><button type="submit" name="estado" value="cancelado" id="turno-cancelar" class="dropdown-item text-danger">Cancelar turno</button></li>
+                            </ul>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -66,6 +89,7 @@
                 </div>
                 <div class="modal-body">
                     <p id="agenda-asignar-horario" class="text-muted"></p>
+                    <p id="agenda-reagendar-paciente" class="alert alert-info d-none"></p>
                     <div id="agenda-consultorio-prestacion-container" class="mb-3 d-none">
                         <label for="agenda-consultorio-prestacion" class="form-label">Prestación</label>
                         <select id="agenda-consultorio-prestacion" class="form-select">
@@ -76,6 +100,14 @@
                         </select>
                     </div>
                     <form id="agenda-buscar-paciente-form" class="mb-3" autocomplete="off">
+                    <div id="agenda-estado-container" class="mb-3">
+                        <label for="agenda-turno-estado" class="form-label">Estado del turno</label>
+                        <select id="agenda-turno-estado" class="form-select">
+                            <option value="asignado" selected>Asignado</option>
+                            <option value="reservado">Reservado</option>
+                        </select>
+                    </div>
+                    <form id="agenda-buscar-paciente-form" class="mb-3">
                         {% csrf_token %}
                         <label for="agenda-paciente-busqueda" class="form-label">Buscar paciente por DNI, nombre o apellido</label>
                         <div class="input-group">
@@ -85,6 +117,7 @@
                     </form>
                     <p id="agenda-busqueda-estado" class="small text-muted" role="status">Ingresá una búsqueda para ver pacientes.</p>
                     <div id="agenda-pacientes-resultados" class="list-group"></div>
+                    <button id="agenda-reagendar-confirmar" type="button" class="btn btn-primary d-none">Confirmar nuevo horario</button>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -92,6 +125,7 @@
             </div>
         </div>
     </div>
+    {{ reagendar_datos|json_script:"agenda-reagendar-datos" }}
 {% endblock %}
 
 {% block scripts  %}
@@ -109,10 +143,23 @@
             const assignmentSchedule = document.getElementById('agenda-asignar-horario');
             const consultorioPrestacionContainer = document.getElementById('agenda-consultorio-prestacion-container');
             const consultorioPrestacion = document.getElementById('agenda-consultorio-prestacion');
+            const turnoEstadoContainer = document.getElementById('agenda-estado-container');
+            const turnoEstadoSelect = document.getElementById('agenda-turno-estado');
+            const reschedulePatient = document.getElementById('agenda-reagendar-paciente');
+            const rescheduleConfirmButton = document.getElementById('agenda-reagendar-confirmar');
+            const assignmentTitle = document.getElementById('agenda-asignar-titulo');
+            let reagendarDatos = JSON.parse(document.getElementById('agenda-reagendar-datos').textContent);
+            if (reagendarDatos) {
+                categorySelect.value = reagendarDatos.categoria;
+                categorySelect.disabled = true;
+            }
             const stateForm = document.getElementById('turno-estado-form');
             const markPresentButton = document.getElementById('turno-presente');
             const markCompletedButton = document.getElementById('turno-completado');
+            const assignTurnButton = document.getElementById('turno-asignado');
+            const reserveTurnButton = document.getElementById('turno-reservado');
             const cancelTurnButton = document.getElementById('turno-cancelar');
+            const actionsDropdown = document.getElementById('turno-acciones-dropdown');
             const rescheduleLink = document.getElementById('turno-reagendar');
             cancelTurnButton.dataset.confirmMessage = '¿Desea cancelar el turno?';
             cancelTurnButton.dataset.confirmAccept = 'Sí, cancelar turno';
@@ -123,6 +170,7 @@
             let selectedAvailableSlot = null;
             const calendar = new FullCalendar.Calendar(document.getElementById('calendario'), {
                 initialView: 'timeGridWeek',
+                initialDate: reagendarDatos?.fecha,
                 locale: 'es',
                 firstDay: 1,
                 slotMinTime: '08:00:00',
@@ -131,8 +179,26 @@
                 slotLabelInterval: '00:30:00',
                 slotLabelFormat: { hour: 'numeric', minute: '2-digit', hour12: false },
                 eventTimeFormat: { hour: 'numeric', minute: '2-digit', hour12: false },
+                displayEventEnd: false,
                 height: 'auto',
                 headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
+                eventContent: function (info) {
+                    const props = info.event.extendedProps;
+                    if (props.disponible) {
+                        const textoDisponible = document.createElement('span');
+                        textoDisponible.textContent = [info.timeText, info.event.title].filter(Boolean).join(' ');
+                        return { domNodes: [textoDisponible] };
+                    }
+                    if (!props.estadoCodigo) return;
+                    const texto = document.createElement('span');
+                    const hora = info.event.start.toLocaleTimeString('es-AR', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                    });
+                    texto.textContent = `${props.prestacion} · ${props.apellido}, ${props.nombre} · ${hora}`;
+                    return { domNodes: [texto] };
+                },
                 events: function (info, success, failure) {
                     const categoria = categorySelect.value;
                     const start = activeViewType === 'dayGridMonth'
@@ -147,6 +213,11 @@
                     const muestraHorarios = filtrada && ['timeGridWeek', 'timeGridDay'].includes(activeViewType);
                     if (filtrada) {
                         disponibilidadParams.set('categoria', categoria);
+                    }
+                    if (reagendarDatos) {
+                        disponibilidadParams.set('tratamiento', reagendarDatos.tratamientoId);
+                        disponibilidadParams.set('dni', reagendarDatos.dni);
+                        disponibilidadParams.set('turno', reagendarDatos.id);
                     }
                     if (muestraHorarios) {
                         disponibilidadParams.set('modo', 'agenda');
@@ -198,9 +269,26 @@
                     cancelTurnButton.classList.toggle(
                         'd-none',
                         !['reservado', 'asignado', 'presente'].includes(props.estadoCodigo)
+                            && !props.puedeCorregir
                     );
-                    rescheduleLink.href = props.editarUrl;
+                    assignTurnButton.classList.toggle(
+                        'd-none',
+                        !props.puedeCorregir || props.estadoCodigo === 'asignado'
+                    );
+                    reserveTurnButton.classList.toggle(
+                        'd-none',
+                        !props.puedeCorregir || props.estadoCodigo === 'reservado'
+                    );
+                    actionsDropdown.classList.toggle(
+                        'd-none',
+                        !props.editable || (
+                            !['reservado', 'asignado', 'presente'].includes(props.estadoCodigo)
+                            && !props.puedeCorregir
+                        )
+                    );
+                    rescheduleLink.href = props.reagendarUrl;
                     rescheduleLink.classList.toggle('d-none', !props.reagendable);
+                    document.getElementById('turno-historia-clinica').href = props.historiaClinicaUrl;
                     modal.show();
                 },
                 dateClick: function (info) {
@@ -224,9 +312,23 @@
             function abrirAsignacion(evento) {
                 const props = evento.extendedProps;
                 selectedAvailableSlot = {
-                    tratamientoId: props.tratamientoId || null,
+                    tratamientoId: props.tratamientoId || reagendarDatos?.tratamientoId || null,
                     fechaAsistencia: evento.startStr
                 };
+                const esReagendamiento = Boolean(reagendarDatos);
+                assignmentTitle.textContent = esReagendamiento ? 'Reagendar turno' : 'Asignar turno disponible';
+                turnoEstadoContainer.classList.toggle('d-none', esReagendamiento);
+                patientSearchForm.classList.toggle('d-none', esReagendamiento);
+                patientSearchStatus.classList.toggle('d-none', esReagendamiento);
+                patientSearchResults.classList.toggle('d-none', esReagendamiento);
+                rescheduleConfirmButton.classList.toggle('d-none', !esReagendamiento);
+                reschedulePatient.classList.toggle('d-none', !esReagendamiento);
+                if (esReagendamiento) {
+                    reschedulePatient.textContent = `Se cambiará el turno de ${reagendarDatos.apellido}, ${reagendarDatos.nombre} (${reagendarDatos.prestacion}).`;
+                    assignmentSchedule.textContent = `Nuevo horario: ${evento.start.toLocaleString('es-AR', { dateStyle: 'full', timeStyle: 'short' })}`;
+                    assignmentModal.show();
+                    return;
+                }
                 const esConsultorioGeneral = props.consultorioGeneral;
                 consultorioPrestacionContainer.classList.toggle('d-none', !esConsultorioGeneral);
                 consultorioPrestacion.value = '';
@@ -303,7 +405,8 @@
                     body: new URLSearchParams({
                         dni: paciente.dni,
                         tratamiento: selectedAvailableSlot.tratamientoId,
-                        fecha_asistencia: selectedAvailableSlot.fechaAsistencia
+                        fecha_asistencia: selectedAvailableSlot.fechaAsistencia,
+                        estado: turnoEstadoSelect.value
                     })
                 })
                     .then(response => response.json().then(data => {
@@ -319,6 +422,38 @@
                         boton.disabled = false;
                     });
             }
+
+            rescheduleConfirmButton.addEventListener('click', function () {
+                if (!reagendarDatos || !selectedAvailableSlot) return;
+                rescheduleConfirmButton.disabled = true;
+                fetch('{% url "agenda_asignar_turno_disponible" %}', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': patientSearchForm.querySelector('[name=csrfmiddlewaretoken]').value },
+                    body: new URLSearchParams({
+                        dni: reagendarDatos.dni,
+                        tratamiento: reagendarDatos.tratamientoId,
+                        fecha_asistencia: selectedAvailableSlot.fechaAsistencia,
+                        turno: reagendarDatos.id
+                    })
+                })
+                    .then(response => response.json().then(data => {
+                        if (!response.ok) throw new Error(data.error || 'No se pudo reagendar el turno.');
+                        return data;
+                    }))
+                    .then(() => {
+                        assignmentModal.hide();
+                        reagendarDatos = null;
+                        categorySelect.disabled = false;
+                        window.history.replaceState({}, '', '{% url "agenda" %}');
+                        calendar.refetchEvents();
+                    })
+                    .catch(error => {
+                        reschedulePatient.textContent = error.message;
+                    })
+                    .finally(() => {
+                        rescheduleConfirmButton.disabled = false;
+                    });
+            });
 
         });
     </script>

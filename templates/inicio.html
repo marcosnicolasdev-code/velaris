@@ -9,4 +9,72 @@
       <p class="mb-0">Sistema de gestión de la clínica.</p>
     </div>
   </section>
+
+  <div class="row g-3 mb-4 dashboard-summary-row">
+    <div class="col-12 col-md-4">
+      <div class="card dashboard-stat-card dashboard-stat-primary h-100">
+        <div class="card-body">
+          <p class="dashboard-stat-label">Pacientes del día</p>
+          <h3 class="dashboard-stat-value">{{ pacientes_del_dia }}</h3>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-4">
+      <div class="card dashboard-stat-card dashboard-stat-warning h-100">
+        <div class="card-body">
+          <p class="dashboard-stat-label">Turnos pendientes</p>
+          <h3 class="dashboard-stat-value">{{ turnos_pendientes }}</h3>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-4">
+      <div class="card dashboard-stat-card dashboard-stat-info h-100">
+        <div class="card-body">
+          <p class="dashboard-stat-label">En espera</p>
+          <h3 class="dashboard-stat-value">{{ en_espera }}</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="card management-page-card sala-espera-card">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="management-page-title mb-0">Sala de espera</h2>
+      </div>
+
+      {% if sala_espera %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0 sala-espera-table">
+            <thead>
+              <tr>
+                <th>Paciente</th>
+                <th>Profesional</th>
+                <th>Tratamiento</th>
+                <th>Hora</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in sala_espera %}
+                <tr>
+                  <td>{{ item.turno.paciente.nombre_paciente }} {{ item.turno.paciente.apellido_paciente }}</td>
+                  <td>{{ item.profesional }}</td>
+                  <td>{{ item.turno.tratamiento.nombre_tratamiento }}</td>
+                  <td>{{ item.turno.fecha_asistencia|date:"H:i" }}</td>
+                  <td>
+                    <span class="estado-badge estado-{{ item.turno.estado }}">{{ item.estado_label }}</span>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="mb-0 text-muted">No hay pacientes en la sala de espera hoy.</p>
+      {% endif %}
+    </div>
+  </section>
 {% endblock %}

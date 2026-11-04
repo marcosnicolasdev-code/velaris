@@ -26,12 +26,24 @@
 
             <div class="row g-3 patient-form-row">
               <div class="col-12 col-md-6 patient-form-field">
-                {{ form.nombre_paciente.label_tag }}
+                <label for="{{ form.nombre_paciente.id_for_label }}" class="field-label-with-icon">
+                  <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <circle cx="12" cy="7" r="3.5"></circle>
+                    <path d="M4.5 21v-2a7.5 7.5 0 0 1 15 0v2"></path>
+                  </svg>
+                  <span>{{ form.nombre_paciente.label }}</span>
+                </label>
                 {{ form.nombre_paciente }}
                 {{ form.nombre_paciente.errors }}
               </div>
               <div class="col-12 col-md-6 patient-form-field">
-                {{ form.apellido_paciente.label_tag }}
+                <label for="{{ form.apellido_paciente.id_for_label }}" class="field-label-with-icon">
+                  <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <circle cx="12" cy="7" r="3.5"></circle>
+                    <path d="M4.5 21v-2a7.5 7.5 0 0 1 15 0v2"></path>
+                  </svg>
+                  <span>{{ form.apellido_paciente.label }}</span>
+                </label>
                 {{ form.apellido_paciente }}
                 {{ form.apellido_paciente.errors }}
               </div>
@@ -39,7 +51,14 @@
 
             <div class="row g-3 patient-form-row">
               <div class="col-12 col-md-6 patient-form-field">
-                {{ form.dni.label_tag }}
+                <label for="{{ form.dni.id_for_label }}" class="field-label-with-icon">
+                  <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <rect x="4" y="2.5" width="16" height="19" rx="2"></rect>
+                    <path d="M8 7.5h8M8 11.5h8M8 15.5h5"></path>
+                    <circle cx="16.5" cy="16.5" r="1.8"></circle>
+                  </svg>
+                  <span>{{ form.dni.label }}</span>
+                </label>
                 {{ form.dni }}
                 {{ form.dni.errors }}
               </div>
@@ -53,12 +72,24 @@
 
             <div class="row g-3 patient-form-row">
               <div class="col-12 col-md-6 patient-form-field">
-                {{ form.domicilio.label_tag }}
+                <label for="{{ form.domicilio.id_for_label }}" class="field-label-with-icon">
+                  <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M12 21s6-5.1 6-11a6 6 0 1 0-12 0c0 5.9 6 11 6 11Z"></path>
+                    <circle cx="12" cy="10" r="2.5"></circle>
+                  </svg>
+                  <span>{{ form.domicilio.label }}</span>
+                </label>
                 {{ form.domicilio }}
                 {{ form.domicilio.errors }}
               </div>
               <div class="col-12 col-md-6 patient-form-field">
-                {{ form.localidad.label_tag }}
+                <label for="{{ form.localidad.id_for_label }}" class="field-label-with-icon">
+                  <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M12 21s6-5.1 6-11a6 6 0 1 0-12 0c0 5.9 6 11 6 11Z"></path>
+                    <circle cx="12" cy="10" r="2.5"></circle>
+                  </svg>
+                  <span>{{ form.localidad.label }}</span>
+                </label>
                 {{ form.localidad }}
                 {{ form.localidad.errors }}
               </div>
@@ -66,12 +97,23 @@
 
             <div class="row g-3 patient-form-row">
               <div class="col-12 col-md-6 patient-form-field">
-                {{ form.telefono.label_tag }}
+                <label for="{{ form.telefono.id_for_label }}" class="field-label-with-icon">
+                  <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M7 4.5h1.5l1.5 4.5-2.2 1.8A13.2 13.2 0 0 0 15.4 19l1.8-2.2 4.5 1.5V18A2.5 2.5 0 0 1 19.2 20.5H17A17 17 0 0 1 7 10.8V4.5Z"></path>
+                  </svg>
+                  <span>{{ form.telefono.label }}</span>
+                </label>
                 {{ form.telefono }}
                 {{ form.telefono.errors }}
               </div>
               <div class="col-12 col-md-6 patient-form-field">
-                {{ form.correo_electronico.label_tag }}
+                <label for="{{ form.correo_electronico.id_for_label }}" class="field-label-with-icon">
+                  <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <rect x="3.5" y="5" width="17" height="15.5" rx="2"></rect>
+                    <path d="M4.5 7.5 12 13l7.5-5.5"></path>
+                  </svg>
+                  <span>{{ form.correo_electronico.label }}</span>
+                </label>
                 {{ form.correo_electronico }}
                 {{ form.correo_electronico.errors }}
               </div>
@@ -79,12 +121,29 @@
 
             <div class="row g-3 patient-form-row">
               <div class="col-12 col-md-6 patient-form-field">
-                {{ form.obra_social.label_tag }}
+                <label for="{{ form.obra_social.id_for_label }}" class="field-label-with-icon">
+                  <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M12 3.5 18.5 6v5.5c0 3.9-2.5 7.6-6.5 9.5-4-1.9-6.5-5.6-6.5-9.5V6L12 3.5Z"></path>
+                    <path d="M12 8.5v4.2M9.8 11.2h4.4"></path>
+                  </svg>
+                  <span>{{ form.obra_social.label }}</span>
+                </label>
                 {{ form.obra_social }}
                 {{ form.obra_social.errors }}
               </div>
               <div class="col-12 col-md-6 patient-form-field">
-                {{ form.sexo.label_tag }}
+                <label for="{{ form.sexo.id_for_label }}" class="field-label-with-icon">
+                  <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <circle cx="8.3" cy="7.5" r="3.5"></circle>
+                    <circle cx="15.7" cy="7.5" r="3.5"></circle>
+                    <path d="M8.3 11.1v5.7"></path>
+                    <path d="M15.7 11.1v5.7"></path>
+                    <path d="M6.1 12.3h4.4"></path>
+                    <path d="M13.7 12.3h4.4"></path>
+                    <path d="M5.5 17.4c1.2 2.1 3.1 3.1 6.8 3.1 3.7 0 5.7-1 6.9-3.1"></path>
+                  </svg>
+                  <span>{{ form.sexo.label }}</span>
+                </label>
                 {{ form.sexo }}
                 {{ form.sexo.errors }}
               </div>

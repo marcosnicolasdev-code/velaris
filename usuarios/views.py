@@ -5,12 +5,56 @@ from .forms import CajaForm, ProfesionalForm, MovimientoCajaForm
 from django.utils import timezone
 from django.db.models import Sum
 
+from pacientes.models import Turno
+
 # Create your views here.
 
 
 @login_required #solicita inciar sesion para avanzar en el sistema
 def inicio(request):
-    return render(request, 'inicio.html')
+    hoy = timezone.localdate()
+    turnos_hoy = Turno.objects.filter(fecha_asistencia__date=hoy).exclude(estado=Turno.Estado.CANCELADO)
+
+    turnos_pendientes = turnos_hoy.exclude(
+        estado__in=[Turno.Estado.FINALIZADO, Turno.Estado.CANCELADO, Turno.Estado.AUSENTE]
+    ).count()
+    pacientes_en_espera = turnos_hoy.filter(
+        estado__in=[Turno.Estado.RESERVADO, Turno.Estado.ASIGNADO]
+    ).count()
+
+    turnos = (
+        turnos_hoy.select_related("paciente", "tratamiento")
+        .order_by("fecha_asistencia")
+    )
+
+    sala_espera = []
+    for turno in turnos:
+        profesional = "Sin asignar"
+        evolucion = turno.evoluciones.order_by("-id").first()
+        if evolucion and evolucion.profesional:
+            profesional = evolucion.profesional.usuario.get_full_name() or evolucion.profesional.usuario.username
+
+        estado_label = {
+            Turno.Estado.RESERVADO: "En espera",
+            Turno.Estado.ASIGNADO: "En espera",
+            Turno.Estado.PRESENTE: "En consultorio",
+            Turno.Estado.FINALIZADO: "Finalizado",
+            Turno.Estado.CANCELADO: "Cancelado",
+            Turno.Estado.AUSENTE: "Cancelado",
+        }.get(turno.estado, turno.get_estado_display())
+
+        sala_espera.append({
+            "turno": turno,
+            "profesional": profesional,
+            "estado_label": estado_label,
+        })
+
+    return render(request, 'inicio.html', {
+        "sala_espera": sala_espera,
+        "pacientes_del_dia": turnos_hoy.count(),
+        "turnos_pendientes": turnos_pendientes,
+        "en_espera": pacientes_en_espera,
+    })
 
 
 #CRUD Caja - El orden se rige por lo que va necesitando el sistema paso a paso

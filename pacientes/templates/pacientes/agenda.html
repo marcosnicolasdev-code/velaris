@@ -29,6 +29,14 @@
             </div>
             <a href="{% url 'agenda' %}" class="btn btn-outline-secondary">Cancelar reagendamiento</a>
         </div>
+    {% elif paciente_agenda_datos %}
+        <div class="alert alert-info d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3" role="status">
+            <div>
+                <strong>Agendando turno para {{ paciente_agenda_datos.apellido }}, {{ paciente_agenda_datos.nombre }}</strong>
+                <div>DNI {{ paciente_agenda_datos.dni }} · Elegí la prestación y el horario en la agenda.</div>
+            </div>
+            <a href="{% url 'agenda' %}" class="btn btn-outline-secondary">Salir del paciente</a>
+        </div>
     {% endif %}
 
     <div class="patient-calendar-surface">
@@ -118,8 +126,10 @@
                             <button type="submit" class="btn btn-primary">Buscar</button>
                         </div>
                     </form>
+                    <p id="agenda-paciente-seleccionado" class="alert alert-info d-none"></p>
                     <p id="agenda-busqueda-estado" class="small text-muted" role="status">Ingresá una búsqueda para ver pacientes.</p>
                     <div id="agenda-pacientes-resultados" class="list-group"></div>
+                    <button id="agenda-paciente-confirmar" type="button" class="btn btn-primary d-none">Asignar turno</button>
                     <button id="agenda-reagendar-confirmar" type="button" class="btn btn-primary d-none">Confirmar nuevo horario</button>
                 </div>
                 <div class="modal-footer">
@@ -129,6 +139,7 @@
         </div>
     </div>
     {{ reagendar_datos|json_script:"agenda-reagendar-datos" }}
+    {{ paciente_agenda_datos|json_script:"agenda-paciente-datos" }}
 {% endblock %}
 
 {% block scripts  %}
@@ -143,6 +154,8 @@
             const patientSearchInput = document.getElementById('agenda-paciente-busqueda');
             const patientSearchStatus = document.getElementById('agenda-busqueda-estado');
             const patientSearchResults = document.getElementById('agenda-pacientes-resultados');
+            const selectedPatientMessage = document.getElementById('agenda-paciente-seleccionado');
+            const selectedPatientConfirmButton = document.getElementById('agenda-paciente-confirmar');
             const assignmentSchedule = document.getElementById('agenda-asignar-horario');
             const consultorioPrestacionContainer = document.getElementById('agenda-consultorio-prestacion-container');
             const consultorioPrestacion = document.getElementById('agenda-consultorio-prestacion');
@@ -152,9 +165,12 @@
             const rescheduleConfirmButton = document.getElementById('agenda-reagendar-confirmar');
             const assignmentTitle = document.getElementById('agenda-asignar-titulo');
             let reagendarDatos = JSON.parse(document.getElementById('agenda-reagendar-datos').textContent);
+            const pacienteAgendaDatos = JSON.parse(document.getElementById('agenda-paciente-datos').textContent);
             if (reagendarDatos) {
                 categorySelect.value = reagendarDatos.categoria;
                 categorySelect.disabled = true;
+            } else if (pacienteAgendaDatos) {
+                categorySelect.value = 'consultorio';
             }
             const stateForm = document.getElementById('turno-estado-form');
             const markPresentButton = document.getElementById('turno-presente');
@@ -321,11 +337,18 @@
                 const esReagendamiento = Boolean(reagendarDatos);
                 assignmentTitle.textContent = esReagendamiento ? 'Reagendar turno' : 'Asignar turno disponible';
                 turnoEstadoContainer.classList.toggle('d-none', esReagendamiento);
-                patientSearchForm.classList.toggle('d-none', esReagendamiento);
-                patientSearchStatus.classList.toggle('d-none', esReagendamiento);
-                patientSearchResults.classList.toggle('d-none', esReagendamiento);
+                const tienePacientePrecargado = Boolean(pacienteAgendaDatos) && !esReagendamiento;
+                patientSearchForm.classList.toggle('d-none', esReagendamiento || tienePacientePrecargado);
+                patientSearchStatus.classList.toggle('d-none', esReagendamiento || tienePacientePrecargado);
+                patientSearchResults.classList.toggle('d-none', esReagendamiento || tienePacientePrecargado);
+                selectedPatientMessage.classList.toggle('d-none', !tienePacientePrecargado);
+                selectedPatientConfirmButton.classList.toggle('d-none', !tienePacientePrecargado);
                 rescheduleConfirmButton.classList.toggle('d-none', !esReagendamiento);
                 reschedulePatient.classList.toggle('d-none', !esReagendamiento);
+                if (tienePacientePrecargado) {
+                    selectedPatientMessage.textContent = `Paciente: ${pacienteAgendaDatos.apellido}, ${pacienteAgendaDatos.nombre} · DNI ${pacienteAgendaDatos.dni}`;
+                    selectedPatientConfirmButton.disabled = false;
+                }
                 if (esReagendamiento) {
                     reschedulePatient.textContent = `Se cambiará el turno de ${reagendarDatos.apellido}, ${reagendarDatos.nombre} (${reagendarDatos.prestacion}).`;
                     assignmentSchedule.textContent = `Nuevo horario: ${evento.start.toLocaleString('es-AR', { dateStyle: 'full', timeStyle: 'short' })}`;
@@ -340,6 +363,7 @@
                 patientSearchForm.reset();
                 patientSearchResults.replaceChildren();
                 patientSearchStatus.textContent = 'Ingresá una búsqueda para ver pacientes.';
+                selectedPatientConfirmButton.disabled = false;
                 assignmentModal.show();
             }
 
@@ -351,6 +375,18 @@
 
             calendar.render();
             categorySelect.addEventListener('change', () => calendar.refetchEvents());
+            selectedPatientConfirmButton.addEventListener('click', function () {
+                if (!pacienteAgendaDatos || !selectedAvailableSlot) return;
+                if (selectedAvailableSlot.esConsultorioGeneral) {
+                    selectedAvailableSlot.tratamientoId = consultorioPrestacion.value;
+                    if (!selectedAvailableSlot.tratamientoId) {
+                        selectedPatientMessage.textContent = 'Elegí una prestación para continuar.';
+                        consultorioPrestacion.focus();
+                        return;
+                    }
+                }
+                asignarTurnoDisponible(pacienteAgendaDatos, selectedPatientConfirmButton);
+            });
             patientSearchForm.addEventListener('submit', function (event) {
                 event.preventDefault();
                 if (!selectedAvailableSlot) return;
@@ -421,7 +457,11 @@
                         calendar.refetchEvents();
                     })
                     .catch(error => {
-                        patientSearchStatus.textContent = error.message;
+                        if (pacienteAgendaDatos) {
+                            selectedPatientMessage.textContent = error.message;
+                        } else {
+                            patientSearchStatus.textContent = error.message;
+                        }
                         boton.disabled = false;
                     });
             }

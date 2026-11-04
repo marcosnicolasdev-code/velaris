@@ -75,6 +75,8 @@ def paciente_lista(request):
 def paciente_detalle(request, dni):
     paciente = get_object_or_404(Paciente, dni=dni)
     turnos = Turno.objects.filter(paciente=paciente).order_by("-fecha_asistencia")
+    for turno in turnos:
+        turno.estado_color = _color_estado_turno(turno.estado)
     planes = PlanPago.objects.filter(dni=paciente).select_related("tratamiento").order_by(
         "-fecha_inicio_tratamiento", "-id_plan"
     )
@@ -361,19 +363,6 @@ def paciente_borrar(request, dni):
         return redirect("paciente_lista")
     return render(request, "pacientes/paciente_confirmar.html", {"paciente": paciente})
 
-#Agendar turno desde la lista de ptes.
-@login_required
-def agendar_turno(request, dni):
-    if not _puede_gestionar_agenda(request.user):
-        raise PermissionDenied
-    paciente = get_object_or_404(Paciente, dni=dni)
-
-    return render(
-        request,
-        "pacientes/agenda_provisoria.html",
-        {"paciente": paciente},
-    )
-
 #vista de “crear evolución” del paciente
 @login_required
 def evolucion_crear(request, dni):
@@ -591,18 +580,7 @@ def agendar_turno(request, dni):
     if not _puede_gestionar_agenda(request.user):
         raise PermissionDenied
     paciente = get_object_or_404(Paciente, dni=dni)
-    if request.method == "POST":
-        form = AgendarTurnoForm(request.POST, paciente=paciente)
-        if form.is_valid():
-            turno = form.save(commit=False)
-            turno.paciente = paciente
-            turno.indicacion_medica = form.cleaned_data.get("indicacion_medica")
-            turno.plan = form.cleaned_data.get("plan")
-            turno.save()
-            return redirect("agenda")
-    else:
-        form = AgendarTurnoForm(paciente=paciente)
-    return render(request, "pacientes/agendar_turno.html", {"form": form, "paciente": paciente})
+    return redirect(f"{reverse('agenda')}?paciente={paciente.dni}")
 
 #READ
 @login_required
@@ -733,6 +711,16 @@ def agenda(request):
     tratamientos_consultorio = Tratamiento.objects.filter(
         agenda_categoria=Tratamiento.AgendaCategoria.CONSULTORIO,
     ).order_by("nombre_tratamiento")
+    paciente_agenda_datos = None
+    dni_paciente = request.GET.get("paciente")
+    if dni_paciente and not request.GET.get("reagendar"):
+        paciente = get_object_or_404(Paciente, dni=dni_paciente)
+        paciente_agenda_datos = {
+            "dni": paciente.dni,
+            "nombre": paciente.nombre_paciente,
+            "apellido": paciente.apellido_paciente,
+            "telefono": paciente.telefono,
+        }
     reagendar_datos = None
     turno_id = request.GET.get("reagendar")
     if turno_id:
@@ -758,6 +746,7 @@ def agenda(request):
         {
             "tratamientos_consultorio": tratamientos_consultorio,
             "reagendar_datos": reagendar_datos,
+            "paciente_agenda_datos": paciente_agenda_datos,
         },
     )
 

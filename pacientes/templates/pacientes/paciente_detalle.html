@@ -272,7 +272,7 @@
 
         <div class="tab-pane fade" id="turnos-panel" role="tabpanel">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <a href="{% url 'agendar_turno' paciente.dni %}" class="btn btn-secondary">Agendar turno</a>
+            <a href="{% url 'agenda' %}?paciente={{ paciente.dni }}" class="btn btn-secondary">Agendar turno</a>
           </div>
 
           <div class="table-responsive">
@@ -285,29 +285,40 @@
                   <tr>
                     <td>{{ turno.fecha_asistencia|date:"d/m/Y, H:i" }}</td>
                     <td>{{ turno.tratamiento }}</td>
-                    <td>{{ turno.get_estado_display }}</td>
+                    <td>
+                      <span class="badge" style="background-color: {{ turno.estado_color }};">
+                        {{ turno.get_estado_display }}
+                      </span>
+                    </td>
                     <td>
                       {% if puede_gestionar_turnos %}
-                        <div class="d-flex flex-wrap gap-1">
-                          {% if turno.estado == "reservado" or turno.estado == "asignado" %}
-                            <form method="post" action="{% url 'turno_estado_paciente' paciente.dni turno.id %}">
-                              {% csrf_token %}
-                              <button type="submit" name="estado" value="presente" class="btn btn-sm btn-success">Presente</button>
-                            </form>
-                          {% endif %}
-                          {% if turno.estado == "presente" %}
-                            <form method="post" action="{% url 'turno_estado_paciente' paciente.dni turno.id %}">
-                              {% csrf_token %}
-                              <button type="submit" name="estado" value="finalizado" class="btn btn-sm btn-primary">Completado</button>
-                            </form>
-                          {% endif %}
-                          {% if turno.estado == "reservado" or turno.estado == "asignado" or turno.estado == "presente" %}
-                            <form method="post" action="{% url 'turno_estado_paciente' paciente.dni turno.id %}">
-                              {% csrf_token %}
-                              <button type="submit" name="estado" value="cancelado" class="btn btn-sm btn-outline-danger" data-confirm-message="¿Desea cancelar el turno?" data-confirm-accept="Sí, cancelar turno">Cancelar</button>
-                            </form>
-                          {% endif %}
-                        </div>
+                        {% if turno.estado == "reservado" or turno.estado == "asignado" or turno.estado == "presente" %}
+                          <div class="d-flex flex-wrap gap-1">
+                            {% if turno.estado == "reservado" or turno.estado == "asignado" %}
+                              <form method="post" action="{% url 'turno_estado_paciente' paciente.dni turno.id %}">
+                                {% csrf_token %}
+                                <button type="submit" name="estado" value="presente" class="btn btn-sm btn-success">Presente</button>
+                              </form>
+                            {% endif %}
+                            <div class="dropdown">
+                              <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Más opciones
+                              </button>
+                              <ul class="dropdown-menu">
+                                {% if turno.estado == "reservado" or turno.estado == "asignado" %}
+                                  <li><a class="dropdown-item" href="{% url 'agenda' %}?reagendar={{ turno.id }}">Reagendar</a></li>
+                                  <li><hr class="dropdown-divider"></li>
+                                {% endif %}
+                                <li>
+                                  <form method="post" action="{% url 'turno_estado_paciente' paciente.dni turno.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" name="estado" value="cancelado" class="dropdown-item text-danger" data-confirm-message="¿Desea cancelar el turno?" data-confirm-accept="Sí, cancelar turno">Cancelar</button>
+                                  </form>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                        {% endif %}
                       {% endif %}
                     </td>
                   </tr>

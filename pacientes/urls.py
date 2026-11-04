@@ -29,5 +29,4 @@ urlpatterns = [
     path("agenda/asignar-disponible.json", views.agenda_asignar_turno_disponible, name="agenda_asignar_turno_disponible"),
     path("agenda/disponibilidad.json", views.agenda_disponibilidad_json, name="agenda_disponibilidad_json"),
     path("agenda/turnos/<int:turno_id>/estado/", views.agenda_turno_estado, name="agenda_turno_estado"),
-    path("pacientes/<str:dni>/agendar/", views.agendar_turno, name="agendar_turno"),
     ]

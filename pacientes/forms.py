@@ -232,7 +232,10 @@ class AgendarTurnoForm(forms.ModelForm):
                 return cleaned
 
         if self.paciente and tratamiento.nombre_tratamiento == "Primera consulta":
-            if Turno.objects.filter(paciente=self.paciente).exists():
+            turnos_previos = Turno.objects.filter(paciente=self.paciente)
+            if self.instance.pk:
+                turnos_previos = turnos_previos.exclude(pk=self.instance.pk)
+            if turnos_previos.exists():
                 self.add_error(
                     "tratamiento",
                     "La primera consulta solo puede asignarse a pacientes que nunca tuvieron turnos previos.",

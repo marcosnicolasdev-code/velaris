@@ -131,7 +131,7 @@ class AgendaTurnoEntryTests(TestCase):
         self.assertContains(respuesta, paciente.dni)
         self.assertContains(respuesta, reverse("agendar_turno", kwargs={"dni": paciente.dni}))
 
-    def test_agendar_turno_no_pide_plan_ni_nota_y_guarda_estado(self):
+    def test_agendar_turno_desde_paciente_redirige_a_agenda_principal(self):
         usuario = User.objects.create_user(username="recepcion_turnos", password="secret123")
         grupo, _ = Group.objects.get_or_create(name="Recepcionista")
         usuario.groups.add(grupo)
@@ -148,29 +148,14 @@ class AgendaTurnoEntryTests(TestCase):
             obra_social="OSDE",
             sexo="Femenino",
         )
-        tratamiento = Tratamiento.objects.get(nombre_tratamiento="Primera consulta")
-        fecha = timezone.localdate() + timedelta(days=7)
-        while fecha.weekday() > 4:
-            fecha += timedelta(days=1)
+        respuesta = self.client.get(reverse("agendar_turno", kwargs={"dni": paciente.dni}))
 
-        pantalla = self.client.get(reverse("agendar_turno", kwargs={"dni": paciente.dni}))
-        self.assertNotContains(pantalla, "Nota administrativa")
-        self.assertNotContains(pantalla, "id_nota")
-
-        respuesta = self.client.post(
-            reverse("agendar_turno", kwargs={"dni": paciente.dni}),
-            {
-                "tratamiento": tratamiento.pk,
-                "fecha_asistencia": f"{fecha.isoformat()}T10:00",
-                "estado": Turno.Estado.RESERVADO,
-            },
-        )
-
-        self.assertRedirects(respuesta, reverse("agenda"))
-        turno = Turno.objects.get(paciente=paciente)
-        self.assertIsNone(turno.plan)
-        self.assertEqual(turno.estado, Turno.Estado.RESERVADO)
-        self.assertEqual(turno.nota, "")
+        self.assertRedirects(respuesta, f"{reverse('agenda')}?paciente={paciente.dni}")
+        self.assertFalse(Turno.objects.filter(paciente=paciente).exists())
+        agenda = self.client.get(reverse("agenda"), {"paciente": paciente.dni})
+        self.assertEqual(agenda.context["paciente_agenda_datos"]["dni"], paciente.dni)
+        self.assertContains(agenda, f"Agendando turno para {paciente.apellido_paciente}, {paciente.nombre_paciente}")
+        self.assertContains(agenda, "agenda-paciente-confirmar")
 
     def test_reagendar_mantiene_paciente_prestacion_y_estado(self):
         usuario = User.objects.create_user(username="recepcion_reagenda", password="secret123")
@@ -897,6 +882,50 @@ class AgendaAvailabilityTests(TestCase):
         self.assertEqual(timezone.localtime(turno.fecha_asistencia).time().minute, 30)
         self.assertEqual(turno.estado, Turno.Estado.RESERVADO)
 
+    def test_agenda_precarga_paciente_y_habilita_asignacion_directa(self):
+        usuario = User.objects.create_user(username="recepcion_paciente_precargado")
+        grupo, _ = Group.objects.get_or_create(name="Recepcionista")
+        usuario.groups.add(grupo)
+        self.client.force_login(usuario)
+        paciente = Paciente.objects.create(
+            dni="77889901",
+            nombre_paciente="María",
+            apellido_paciente="Sosa",
+            fecha_nacimiento="1989-02-01",
+            domicilio="Calle 20",
+            localidad="Rosario",
+            correo_electronico="maria@example.com",
+            telefono="3415557777",
+            obra_social="OSDE",
+            sexo="Femenino",
+        )
+
+        agenda = self.client.get(reverse("agenda"), {"paciente": paciente.dni})
+
+        self.assertEqual(agenda.status_code, 200)
+        self.assertEqual(agenda.context["paciente_agenda_datos"]["dni"], paciente.dni)
+        self.assertContains(agenda, "agenda-paciente-datos")
+        self.assertContains(agenda, "agenda-paciente-confirmar")
+
+        tratamiento = Tratamiento.objects.get(nombre_tratamiento="Primera consulta")
+        fecha = timezone.localdate() + timedelta(days=7)
+        while fecha.weekday() > 4:
+            fecha += timedelta(days=1)
+        respuesta = self.client.post(
+            reverse("agenda_asignar_turno_disponible"),
+            {
+                "dni": paciente.dni,
+                "tratamiento": tratamiento.pk,
+                "fecha_asistencia": f"{fecha.isoformat()}T10:00",
+                "estado": Turno.Estado.RESERVADO,
+            },
+        )
+
+        self.assertEqual(respuesta.status_code, 201, respuesta.content)
+        turno = Turno.objects.get(paciente=paciente)
+        self.assertEqual(turno.estado, Turno.Estado.RESERVADO)
+        self.assertEqual(turno.tratamiento, tratamiento)
+
     def test_agenda_filtrada_muestra_resumenes_y_horarios_de_categoria(self):
         usuario = User.objects.create_user(username="recepcion_agenda_filtrada", password="secret123")
         grupo, _ = Group.objects.get_or_create(name="Recepcionista")
@@ -1227,7 +1256,7 @@ class AgendaAvailabilityTests(TestCase):
         turno.refresh_from_db()
         self.assertEqual(turno.estado, Turno.Estado.FINALIZADO)
 
-    def test_presente_aparece_en_curso_y_habilita_completar_desde_historia(self):
+    def test_presente_aparece_en_curso_y_mantiene_opciones_de_cancelacion_en_historia(self):
         usuario = User.objects.create_user(username="recepcion_presente")
         grupo, _ = Group.objects.get_or_create(name="Recepcionista")
         usuario.groups.add(grupo)
@@ -1251,7 +1280,29 @@ class AgendaAvailabilityTests(TestCase):
         detalle = self.client.get(
             reverse("paciente_detalle", kwargs={"dni": self.paciente.dni})
         )
+        self.assertContains(
+            detalle,
+            '<span class="badge" style="background-color: #247a52;">\n                        Asignado',
+            html=False,
+        )
+        eventos = self.client.get(
+            reverse("turnos_json"),
+            {
+                "start": timezone.localdate().isoformat(),
+                "end": (timezone.localdate() + timedelta(days=10)).isoformat(),
+            },
+        ).json()
+        evento = next(evento for evento in eventos if evento["id"] == turno.pk)
+        self.assertEqual(evento["backgroundColor"], "#247a52")
+        self.assertEqual(evento["extendedProps"]["estado"], "Asignado")
+        self.assertContains(
+            detalle,
+            f'href="{reverse("agenda")}?paciente={self.paciente.dni}"',
+        )
         self.assertContains(detalle, "Presente")
+        self.assertContains(detalle, "Más opciones")
+        self.assertContains(detalle, f'href="{reverse("agenda")}?reagendar={turno.pk}"')
+        self.assertContains(detalle, "Cancelar")
         self.assertContains(detalle, "<th>Fecha y hora</th>")
         self.assertContains(
             detalle,
@@ -1279,7 +1330,24 @@ class AgendaAvailabilityTests(TestCase):
             reverse("paciente_detalle", kwargs={"dni": self.paciente.dni})
         )
         self.assertContains(detalle, "12 restantes")
-        self.assertContains(detalle, "Completado")
+        self.assertContains(
+            detalle,
+            '<span class="badge" style="background-color: #7651a8;">\n                        Presente',
+            html=False,
+        )
+        eventos = self.client.get(
+            reverse("turnos_json"),
+            {
+                "start": timezone.localdate().isoformat(),
+                "end": (timezone.localdate() + timedelta(days=10)).isoformat(),
+            },
+        ).json()
+        evento = next(evento for evento in eventos if evento["id"] == turno.pk)
+        self.assertEqual(evento["backgroundColor"], "#7651a8")
+        self.assertEqual(evento["extendedProps"]["estado"], "Presente")
+        self.assertContains(detalle, "Más opciones")
+        self.assertContains(detalle, "Cancelar")
+        self.assertNotContains(detalle, f'href="{reverse("agenda")}?reagendar={turno.pk}"')
 
     def test_presente_sin_plan_inicia_tratamiento_en_curso(self):
         usuario = User.objects.create_user(username="recepcion_presente_sin_plan")

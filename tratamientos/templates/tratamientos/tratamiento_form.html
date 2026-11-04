@@ -1,11 +1,14 @@
 {% extends "base.html" %}
+{% block titulo %}Tratamiento - Velaris{% endblock %}
 {% block contenido %}
-<div style="padding:20px">
-<h2>Editar Tratamiento</h2>
-<form method="post"> 
-{% csrf_token %} 
-{{ form.as_p }}
-<button type="submit" class="btn btn-primary">Guardar</button>
-</form> 
-</div>
+  <section class="form-surface">
+    <h1 class="treatment-page-title">Editar tratamiento</h1>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <div class="treatment-page-actions">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+      </div>
+    </form>
+  </section>
 {% endblock %}

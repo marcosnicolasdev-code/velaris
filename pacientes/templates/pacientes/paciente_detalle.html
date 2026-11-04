@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% block titulo %}{{ paciente.apellido_paciente }} — Velaris{% endblock %}
 {% block contenido %}
+<div class="patient-detail-page">
 
-  <div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="patient-detail-heading d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
     <h1 class="mb-0">{{ paciente.apellido_paciente }}, {{ paciente.nombre_paciente }}</h1>
     <div>
       {% if puede_crear_medica %}
@@ -11,7 +12,7 @@
     </div>
   </div>
 
-  <div class="row g-4 mb-4 align-items-stretch">
+  <div class="row g-4 mb-4 align-items-stretch patient-detail-summary">
     <div class="col-12 col-lg-8">
       <div class="card h-100 info-panel">
         <div class="card-header d-flex justify-content-between align-items-center">
@@ -202,11 +203,11 @@
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="mt-3">
+    <div class="mt-3">
     <a href="{% url 'paciente_lista' %}" class="btn btn-secondary">Volver</a>
   </div>
+</div>
 
 {% endblock %}
 

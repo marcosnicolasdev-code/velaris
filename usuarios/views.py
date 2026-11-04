@@ -77,7 +77,7 @@ def caja_movimientos(request, id=None):
         caja = get_object_or_404(Caja, usuario=request.user)
         es_propia = True
 
-    hoy = timezone.now().date()
+    hoy = timezone.localdate()
     # Solo los movimientos de hoy de esta caja
     movimientos = MovimientoCaja.objects.filter(
         caja=caja, 
@@ -106,7 +106,7 @@ def caja_movimientos(request, id=None):
 @login_required
 def caja_detalle(request, id):
     caja = get_object_or_404(Caja, id=id)
-    hoy = timezone.now().date()
+    hoy = timezone.localdate()
 
     movimientos = MovimientoCaja.objects.filter(
         caja=caja,
@@ -169,4 +169,3 @@ def profesional_borrar(request, id):
         profesional.delete()
         return redirect("profesional_lista")
     return render(request, "usuarios/profesional_confirmar.html", {"profesional": profesional})
-

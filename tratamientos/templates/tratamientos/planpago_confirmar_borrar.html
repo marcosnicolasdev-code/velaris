@@ -1,10 +1,17 @@
-{% extends "base.html" %} 
-{% block content %}
- <h2>Borrar plan{{plan.id_plan}}?</h2>
-<p>Estas seguro?</p>
-<form method="post"> 
- {% csrf_token %}
- <button type="submit" class="btn btn-danger">Si,borrar</button>
- <a href="{% url 'planpago_lista' %}" class="btn btn-secondary">Cancelar</a> 
-</form> 
+{% extends "base.html" %}
+{% block titulo %}Borrar plan de pago - Velaris{% endblock %}
+{% block contenido %}
+  <section class="card treatment-page-card treatment-confirm-card">
+    <div class="card-body">
+      <h1 class="treatment-page-title">Borrar plan {{ plan.id_plan }}?</h1>
+      <p>¿Estás seguro de que querés borrar este plan de pago?</p>
+      <form method="post">
+        {% csrf_token %}
+        <div class="treatment-page-actions">
+          <button type="submit" class="btn btn-danger">Sí, borrar</button>
+          <a href="{% url 'planpago_lista' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </section>
 {% endblock %}

@@ -1,11 +1,15 @@
 {% extends "base.html" %}
-{% block titulo %}Producto - Velaris{% endblock %} 
+{% block titulo %}Producto - Velaris{% endblock %}
 {% block contenido %}
-    <h1>Datos del producto</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Guardar</button>
-        <a href="{% url 'producto_lista' %}" class="btn btn-secondary">Cancelar</a>
-    </form>
+    <section class="form-surface">
+        <h1 class="management-page-title">Datos del producto</h1>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="management-page-actions">
+                <button type="submit" class="btn btn-primary">Guardar</button>
+                <a href="{% url 'producto_lista' %}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </section>
 {% endblock %}

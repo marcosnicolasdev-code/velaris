@@ -6,7 +6,7 @@
 
   <div class="row g-4">
     <div class="col-12 col-lg-4">
-      <form method="post" id="turno-form">
+      <form method="post" id="turno-form" class="form-surface">
         {% csrf_token %}
         <div class="mb-3">
           <label class="form-label" for="id_tratamiento">Prestación</label>
@@ -39,7 +39,9 @@
     </div>
     <div class="col-12 col-lg-8">
       <div class="small text-muted mb-2">En el mes ves la cantidad de horarios libres por día. En la semana ves cada horario y el estado de los turnos.</div>
-      <div id="calendario-turno"></div>
+      <div class="patient-calendar-surface">
+        <div id="calendario-turno"></div>
+      </div>
     </div>
   </div>
 {% endblock %}

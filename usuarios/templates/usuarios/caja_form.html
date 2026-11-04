@@ -3,12 +3,15 @@
 {% block titulo %}Caja — Velaris{% endblock %}
 
 {% block contenido %}
-  <h1>Datos de la caja</h1>
-
-  <form method="post">
-    {% csrf_token %} <!--Sirve para validar la sesion - Seguridad-->
-    {{ form.as_p }} <!--Completa los campos de forma automatica definidos en form.py-->
-    <button type="submit" class="btn btn-primary">Guardar</button>
-    <a href="{% url 'caja_lista' %}" class="btn btn-secondary">Cancelar</a>
-  </form>
+  <section class="form-surface">
+    <h1 class="management-page-title">Datos de la caja</h1>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <div class="management-page-actions">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a href="{% url 'caja_lista' %}" class="btn btn-secondary">Cancelar</a>
+      </div>
+    </form>
+  </section>
 {% endblock %}

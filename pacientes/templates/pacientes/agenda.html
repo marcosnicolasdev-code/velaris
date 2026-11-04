@@ -1,19 +1,21 @@
 {% extends "base.html" %}
 {% block titulo %}Agenda{% endblock %}
 {% block contenido %}
-    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
-        <div>
-            <h1 class="mb-1">Agenda de turnos</h1>
-            <label for="agenda-categoria" class="form-label mb-1">Ver agenda</label>
-            <select id="agenda-categoria" class="form-select" style="min-width: 280px;">
-                <option value="todas">Todas</option>
-                <option value="consultorio">Prestaciones del consultorio</option>
-                <option value="mtc">MTC</option>
-                <option value="ntf">NTF</option>
-                <option value="prp">PRP</option>
-            </select>
+    <div class="patient-calendar-surface mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-end gap-3">
+            <div>
+                <h1 class="management-page-title mb-2">Agenda de turnos</h1>
+                <label for="agenda-categoria" class="form-label mb-1">Ver agenda</label>
+                <select id="agenda-categoria" class="form-select" style="min-width: 280px;">
+                    <option value="todas">Todas</option>
+                    <option value="consultorio">Prestaciones del consultorio</option>
+                    <option value="mtc">MTC</option>
+                    <option value="ntf">NTF</option>
+                    <option value="prp">PRP</option>
+                </select>
+            </div>
+            <a href="{% url 'nuevo_turno_agenda' %}" class="btn btn-primary">Nuevo turno</a>
         </div>
-        <a href="{% url 'nuevo_turno_agenda' %}" class="btn btn-primary">Nuevo turno</a>
     </div>
 
     {% if reagendar_datos %}
@@ -29,14 +31,16 @@
         </div>
     {% endif %}
 
-  <div id="calendario"></div>
+    <div class="patient-calendar-surface">
+        <div id="calendario"></div>
 
-    <div class="d-flex flex-wrap gap-3 small text-muted mt-3" aria-label="Estados de turnos">
-        <span><i class="agenda-status-dot" style="background:#d79b16"></i>Reservado</span>
-        <span><i class="agenda-status-dot" style="background:#247a52"></i>Asignado</span>
-        <span><i class="agenda-status-dot" style="background:#7651a8"></i>Presente</span>
-        <span><i class="agenda-status-dot" style="background:#3667a6"></i>Completado</span>
-        <span><i class="agenda-status-dot" style="background:#bd4a43"></i>Ausente</span>
+        <div class="d-flex flex-wrap gap-3 small text-muted mt-3" aria-label="Estados de turnos">
+            <span><i class="agenda-status-dot" style="background:#d79b16"></i>Reservado</span>
+            <span><i class="agenda-status-dot" style="background:#247a52"></i>Asignado</span>
+            <span><i class="agenda-status-dot" style="background:#7651a8"></i>Presente</span>
+            <span><i class="agenda-status-dot" style="background:#3667a6"></i>Completado</span>
+            <span><i class="agenda-status-dot" style="background:#bd4a43"></i>Ausente</span>
+        </div>
     </div>
 
     <div class="modal fade" id="turno-detalle-modal" tabindex="-1" aria-labelledby="turno-detalle-titulo" aria-hidden="true">
@@ -99,7 +103,6 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <form id="agenda-buscar-paciente-form" class="mb-3" autocomplete="off">
                     <div id="agenda-estado-container" class="mb-3">
                         <label for="agenda-turno-estado" class="form-label">Estado del turno</label>
                         <select id="agenda-turno-estado" class="form-select">

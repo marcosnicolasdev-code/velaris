@@ -1,11 +1,18 @@
-{%extends "base.html"%}
-{%block titulo%}Plan de Pago{%endblock%}
-{%block contenido%}
-<h2>{%if form.instance.pk%}Editar{%else%}Registrar pago{%endif%} Plan de Pago{% if paciente %} para {{ paciente.apellido_paciente }}, {{ paciente.nombre_paciente }}{% endif %}</h2>
-<form method="post">
- {%csrf_token%}
- {{form.as_p}}
- <button type="submit" class="btn btn-success">Guardar</button>
- <a href="{% url 'planpago_lista'%}" class="btn btn-secondary">Cancelar</a>
-</form>
-{%endblock%}
+{% extends "base.html" %}
+{% block titulo %}Plan de pago - Velaris{% endblock %}
+{% block contenido %}
+  <section class="form-surface">
+    <h1 class="treatment-page-title">
+      {% if form.instance.pk %}Editar plan de pago{% else %}Registrar pago{% endif %}
+      {% if paciente %} para {{ paciente.apellido_paciente }}, {{ paciente.nombre_paciente }}{% endif %}
+    </h1>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <div class="treatment-page-actions">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a href="{% url 'planpago_lista' %}" class="btn btn-secondary">Cancelar</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}

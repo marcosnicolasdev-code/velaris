@@ -1,33 +1,46 @@
-{% extends 'base.html'%}
-{% block content %}
-<h2>Sesiones</h2>
-<a href="{% url 'sesion_crear'%}" class="btn btn-primary">Nueva Sesion</a>
-<table class="table mt-3">
-  <thead>
-  <tr>
-   <th>ID</th>
-   <th>Numero Sesion</th>
-   <th>Duracion</th>
-   <th>Plan de Pago asociado</th>
-   <th>Estado de pago</th>
-  </tr>
-  </thead>
-  <tbody>
-{% for sesion in sesiones %}
-<tr>
-  <td>{{sesion.id_sesion}}</td>
-  <th>{{sesion.numero_sesion}}</th>
-  <th>{{sesion.duracion_sesion}}</th>
-  <td>{{sesion.id_plan|default:"-"}}</td>
-  <td>{{sesion.estado_pago}}</td>
-  <td>
-   <a href="{% url 'sesion_editar' sesion.id_sesion %}">Editar</a>
-   <a href="{% url 'sesion_borrar' sesion.id_sesion%}">Borrar</a>
-  </td>
-</tr>
-{% empty %}
- <tr><td colspan="4">No hay sesiones</td></tr>
-{% endfor %}
-  </tbody>
-</table>
+{% extends "base.html" %}
+{% block titulo %}Sesiones - Velaris{% endblock %}
+{% block contenido %}
+  <section class="card treatment-page-card">
+    <div class="card-body">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+        <h1 class="treatment-page-title mb-0">Sesiones</h1>
+        <a href="{% url 'sesion_crear' %}" class="btn btn-primary">Nueva sesión</a>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Número de sesión</th>
+              <th>Duración</th>
+              <th>Plan de pago asociado</th>
+              <th>Estado de pago</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sesion in sesiones %}
+              <tr>
+                <td>{{ sesion.id_sesion }}</td>
+                <td>{{ sesion.numero_sesion }}</td>
+                <td>{{ sesion.duracion_sesion }}</td>
+                <td>{{ sesion.id_plan|default:"-" }}</td>
+                <td>{{ sesion.estado_pago }}</td>
+                <td>
+                  <div class="treatment-page-actions">
+                    <a href="{% url 'sesion_editar' sesion.id_sesion %}" class="btn btn-sm btn-outline-primary">Editar</a>
+                    <a href="{% url 'sesion_borrar' sesion.id_sesion %}" class="btn btn-sm btn-outline-danger">Borrar</a>
+                  </div>
+                </td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="6" class="text-center text-muted py-4">No hay sesiones</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
 {% endblock %}

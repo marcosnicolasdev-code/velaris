@@ -3,32 +3,36 @@
 {% block titulo %}Lista de Profesionales{% endblock %}
 
 {% block contenido %}
-    <h1>Lista de Profesionales</h1>
-    <a href="{% url 'profesional_crear' %}" class="btn btn-primary">Nuevo Profesional</a>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Profesional</th>
-                <th>Matrícula</th>
-                <th>Especialidad</th>
-            </tr>
-        </thead>
-        <tbody>
+  <section class="card management-page-card">
+    <div class="card-body">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+        <h1 class="management-page-title mb-0">Lista de profesionales</h1>
+        <a href="{% url 'profesional_crear' %}" class="btn btn-primary">Nuevo profesional</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-striped align-middle">
+          <thead>
+            <tr><th>Profesional</th><th>Matrícula</th><th>Especialidad</th><th>Acciones</th></tr>
+          </thead>
+          <tbody>
             {% for pro in profesionales %}
-                <tr>
-                    <td>{{ pro.usuario.get_full_name }}</td>
-                    <td>{{ pro.matricula }}</td>
-                    <td>{{ pro.especialidad }}</td>
-                    <td>
-                        <a href="{% url 'profesional_editar' pro.id %}" class="btn btn-sm btn-secondary">Editar</a>
-                        <a href="{% url 'profesional_borrar' pro.id %}" class="btn btn-sm btn-danger">Eliminar</a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4">No hay profesionales registrados.</td>
-                </tr>
+              <tr>
+                <td>{{ pro.usuario.get_full_name }}</td>
+                <td>{{ pro.matricula }}</td>
+                <td>{{ pro.especialidad }}</td>
+                <td>
+                  <div class="management-page-actions">
+                    <a href="{% url 'profesional_editar' pro.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
+                    <a href="{% url 'profesional_borrar' pro.id %}" class="btn btn-sm btn-outline-danger">Eliminar</a>
+                  </div>
+                </td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="4" class="text-center text-muted py-4">No hay profesionales registrados.</td></tr>
             {% endfor %}
-        </tbody>
-    </table>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
 {% endblock %}

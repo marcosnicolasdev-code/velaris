@@ -1,11 +1,17 @@
 {% extends "base.html" %}
 {% block titulo %}Borrar — Velaris{% endblock %}
 {% block contenido %}
-    <h1>¿Borrar este producto?</h1>
-    <p>{{ producto.codigo_producto }} - {{ producto.nombre_producto }}</p>
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger">Si, borrar</button>
-        <a href="{% url 'producto_lista' %}" class="btn btn-secondary">Cancelar</a>
-    </form>
+    <section class="card management-page-card management-confirm-card">
+        <div class="card-body">
+            <h1 class="management-page-title">¿Borrar este producto?</h1>
+            <p>{{ producto.codigo_producto }} — {{ producto.nombre_producto }}</p>
+            <form method="post">
+                {% csrf_token %}
+                <div class="management-page-actions">
+                    <button type="submit" class="btn btn-danger">Sí, borrar</button>
+                    <a href="{% url 'producto_lista' %}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </section>
 {% endblock %}

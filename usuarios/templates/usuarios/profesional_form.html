@@ -3,12 +3,15 @@
 {% block titulo %}Nuevo profesional{% endblock %}
 
 {% block contenido %}
-  <h1>Nuevo profesional</h1>
-
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Guardar</button>
-    <a href="{% url 'profesional_lista' %}" class="btn btn-secondary">Cancelar</a>
-  </form>
+  <section class="form-surface">
+    <h1 class="management-page-title">Nuevo profesional</h1>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <div class="management-page-actions">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a href="{% url 'profesional_lista' %}" class="btn btn-secondary">Cancelar</a>
+      </div>
+    </form>
+  </section>
 {% endblock %}

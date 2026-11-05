@@ -95,13 +95,14 @@ main.container {
 
 .main-navigation .nav-link.active::after {
     position: absolute;
-    right: 0.5rem;
+    left: 50%;
+    width: calc(100% - 1rem);
     bottom: 0;
-    left: 0.5rem;
     height: 3px;
     border-radius: 3px 3px 0 0;
     background: #265673;
     content: "";
+    transform: translateX(-50%);
 }
 
 .main-navigation .nav-icon {
@@ -1175,11 +1176,12 @@ main.container .table thead th {
     }
 
     .main-navigation .nav-link.active::after {
-        right: auto;
-        bottom: 0.35rem;
-        left: 0.75rem;
+        top: 50%;
+        bottom: auto;
+        left: 0.25rem;
         width: 3px;
         height: 1.25rem;
         border-radius: 3px;
+        transform: translateY(-50%);
     }
 }

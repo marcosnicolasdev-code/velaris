@@ -71,7 +71,36 @@ class PermisosGrupoTests(TestCase):
         inicio = self.client.get(reverse("inicio"))
 
         self.assertEqual(inicio.status_code, 200)
-        for opcion in ("Nueva venta", "Stock", "Nuevo profesional", "Caja"):
+        for opcion in ("Nueva venta", "Stock", "Caja"):
+            self.assertContains(inicio, opcion)
+        self.assertNotContains(inicio, "Nuevo profesional")
+
+    def test_recepcionista_no_ve_nuevo_profesional_en_la_barra(self):
+        usuario = User.objects.create_user(username="recepcion_sin_profesionales")
+        grupo = Group.objects.get_or_create(name="Recepcionista")[0]
+        usuario.groups.add(grupo)
+        self.client.force_login(usuario)
+
+        inicio = self.client.get(reverse("inicio"))
+
+        self.assertEqual(inicio.status_code, 200)
+        self.assertNotContains(inicio, "Nuevo profesional")
+        for opcion in ("Nuevo paciente", "Nuevo tratamiento", "Turnos"):
+            self.assertContains(inicio, opcion)
+
+    def test_administrativo_no_ve_opciones_clinicas_en_la_barra(self):
+        usuario = User.objects.create_user(username="administrativo_barra")
+        grupo = Group.objects.get_or_create(name="Administrativo")[0]
+        usuario.groups.add(grupo)
+        self.client.force_login(usuario)
+
+        inicio = self.client.get(reverse("inicio"))
+
+        self.assertEqual(inicio.status_code, 200)
+        for opcion in ("Nuevo paciente", "Nuevo tratamiento", "Nuevo profesional"):
+            self.assertNotContains(inicio, opcion)
+        self.assertNotContains(inicio, f'href="{reverse("agenda")}"')
+        for opcion in ("Nueva venta", "Stock", "Caja"):
             self.assertContains(inicio, opcion)
 
 

@@ -319,6 +319,11 @@ h2 {
     opacity: 0.45;
 }
 
+.fc .fc-daygrid-day-number,
+.fc .fc-col-header-cell-cushion {
+    color: #2c3e50;
+}
+
 .submenu-item {
     position: relative;
     flex: 0 0 auto;
@@ -441,6 +446,23 @@ main.container form label {
     margin-bottom: 0.4rem;
     color: #14213d;
     font-weight: 600;
+}
+
+.agenda-patient-search {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+    gap: 0.5rem;
+}
+
+.agenda-patient-search .form-control {
+    min-width: 0;
+    flex: 1 1 0%;
+}
+
+.agenda-patient-search .btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
 }
 
 main.container form input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),

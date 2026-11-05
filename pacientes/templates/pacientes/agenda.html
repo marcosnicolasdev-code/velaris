@@ -121,7 +121,7 @@
                     <form id="agenda-buscar-paciente-form" class="mb-3">
                         {% csrf_token %}
                         <label for="agenda-paciente-busqueda" class="form-label">Buscar paciente por DNI, nombre o apellido</label>
-                        <div class="input-group">
+                        <div class="agenda-patient-search">
                             <input type="search" id="agenda-paciente-busqueda" class="form-control" placeholder="DNI, nombre o apellido" required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                             <button type="submit" class="btn btn-primary">Buscar</button>
                         </div>

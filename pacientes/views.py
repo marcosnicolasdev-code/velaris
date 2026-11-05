@@ -58,6 +58,24 @@ def _filtrar_pacientes_por_busqueda(pacientes, consulta):
     return [paciente for paciente in pacientes if coincide(paciente)]
 
 
+def _turno_puede_corregir(turno, ahora):
+    return (
+        turno.estado in {Turno.Estado.PRESENTE, Turno.Estado.FINALIZADO}
+        and turno.fecha_asistencia > ahora
+    )
+
+
+def _turno_estado_editable(turno, ahora):
+    return turno.estado in {
+        Turno.Estado.RESERVADO,
+        Turno.Estado.ASIGNADO,
+        Turno.Estado.PRESENTE,
+    } or (
+        turno.estado == Turno.Estado.FINALIZADO
+        and turno.fecha_asistencia > ahora
+    )
+
+
 @login_required
 def paciente_lista(request):
     q = request.GET.get("q", "").strip()
@@ -75,8 +93,11 @@ def paciente_lista(request):
 def paciente_detalle(request, dni):
     paciente = get_object_or_404(Paciente, dni=dni)
     turnos = Turno.objects.filter(paciente=paciente).order_by("-fecha_asistencia")
+    ahora = timezone.now()
     for turno in turnos:
         turno.estado_color = _color_estado_turno(turno.estado)
+        turno.puede_corregir_estado = _turno_puede_corregir(turno, ahora)
+        turno.puede_gestionar_estado = _turno_estado_editable(turno, ahora)
     planes = PlanPago.objects.filter(dni=paciente).select_related("tratamiento").order_by(
         "-fecha_inicio_tratamiento", "-id_plan"
     )
@@ -793,6 +814,7 @@ def turnos_json(request):
     if categoria and categoria != "todas":
         turnos = turnos.filter(tratamiento__agenda_categoria=categoria)
     eventos = []
+    ahora = timezone.now()
     for turno in turnos:
         color = _color_estado_turno(turno.estado)
         nombre = f"{turno.paciente.apellido_paciente}, {turno.paciente.nombre_paciente}"
@@ -814,18 +836,8 @@ def turnos_json(request):
                 "historiaClinicaUrl": reverse("paciente_detalle", kwargs={"dni": turno.paciente.dni}),
                 "reagendarUrl": f"{reverse('agenda')}?reagendar={turno.pk}",
                 "estadoUrl": reverse("agenda_turno_estado", kwargs={"turno_id": turno.pk}),
-                "editable": turno.estado in {
-                        Turno.Estado.RESERVADO,
-                        Turno.Estado.ASIGNADO,
-                        Turno.Estado.PRESENTE,
-                } or (
-                        turno.estado == Turno.Estado.FINALIZADO
-                        and turno.fecha_asistencia > timezone.now()
-                ),
-                "puedeCorregir": (
-                        turno.estado in {Turno.Estado.PRESENTE, Turno.Estado.FINALIZADO}
-                        and turno.fecha_asistencia > timezone.now()
-                ),
+                "editable": _turno_estado_editable(turno, ahora),
+                "puedeCorregir": _turno_puede_corregir(turno, ahora),
                     "reagendable": turno.estado in {
                         Turno.Estado.RESERVADO,
                         Turno.Estado.ASIGNADO,

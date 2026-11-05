@@ -121,13 +121,13 @@
             {% endif %}
           </ul>
           {% if puede_cobrar_plan and tratamientos_sin_plan %}
-            <a href="{% url 'planpago_cobrar' paciente.dni %}" class="btn btn-outline-primary mt-3 payment-action-btn">
+            <span class="btn btn-outline-primary mt-3 payment-action-btn">
               <svg class="payment-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                 <rect x="2.5" y="5.5" width="19" height="13" rx="2"></rect>
                 <path d="M2.5 9.5h19M7 15.5h3"></path>
               </svg>
               <span>Registrar pago de tratamiento</span>
-            </a>
+            </span>
           {% endif %}
           <hr>
           <h3 class="mb-2 mtc-title">
@@ -292,23 +292,46 @@
                     </td>
                     <td>
                       {% if puede_gestionar_turnos %}
-                        {% if turno.estado == "reservado" or turno.estado == "asignado" or turno.estado == "presente" %}
+                        {% if turno.puede_gestionar_estado %}
                           <div class="d-flex flex-wrap gap-1">
-                            {% if turno.estado == "reservado" or turno.estado == "asignado" %}
-                              <form method="post" action="{% url 'turno_estado_paciente' paciente.dni turno.id %}">
-                                {% csrf_token %}
-                                <button type="submit" name="estado" value="presente" class="btn btn-sm btn-success">Presente</button>
-                              </form>
-                            {% endif %}
                             <div class="dropdown">
                               <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 Más opciones
                               </button>
                               <ul class="dropdown-menu">
                                 {% if turno.estado == "reservado" or turno.estado == "asignado" %}
-                                  <li><a class="dropdown-item" href="{% url 'agenda' %}?reagendar={{ turno.id }}">Reagendar</a></li>
-                                  <li><hr class="dropdown-divider"></li>
+                                  <li>
+                                    <form method="post" action="{% url 'turno_estado_paciente' paciente.dni turno.id %}">
+                                      {% csrf_token %}
+                                      <button type="submit" name="estado" value="presente" class="dropdown-item">Presente</button>
+                                    </form>
+                                  </li>
+                                {% elif turno.estado == "presente" %}
+                                  <li>
+                                    <form method="post" action="{% url 'turno_estado_paciente' paciente.dni turno.id %}">
+                                      {% csrf_token %}
+                                      <button type="submit" name="estado" value="finalizado" class="dropdown-item">Completado</button>
+                                    </form>
+                                  </li>
                                 {% endif %}
+                                {% if turno.puede_corregir_estado %}
+                                  <li>
+                                    <form method="post" action="{% url 'turno_estado_paciente' paciente.dni turno.id %}">
+                                      {% csrf_token %}
+                                      <button type="submit" name="estado" value="asignado" class="dropdown-item" {% if turno.estado == "asignado" %}hidden{% endif %}>Volver a Asignado</button>
+                                    </form>
+                                  </li>
+                                  <li>
+                                    <form method="post" action="{% url 'turno_estado_paciente' paciente.dni turno.id %}">
+                                      {% csrf_token %}
+                                      <button type="submit" name="estado" value="reservado" class="dropdown-item" {% if turno.estado == "reservado" %}hidden{% endif %}>Volver a Reservado</button>
+                                    </form>
+                                  </li>
+                                {% endif %}
+                                {% if turno.estado == "reservado" or turno.estado == "asignado" %}
+                                  <li><a class="dropdown-item" href="{% url 'agenda' %}?reagendar={{ turno.id }}">Reagendar</a></li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
                                 <li>
                                   <form method="post" action="{% url 'turno_estado_paciente' paciente.dni turno.id %}">
                                     {% csrf_token %}

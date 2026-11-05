@@ -562,6 +562,46 @@ class AgendaAvailabilityTests(TestCase):
         self.assertContains(respuesta, "12 sesiones realizadas")
         self.assertNotContains(respuesta, "Asignar tratamiento")
 
+    def test_historia_muestra_opciones_de_turnos_con_las_mismas_reglas_que_agenda(self):
+        usuario = User.objects.create_user(username="recepcion_menu_turnos")
+        grupo, _ = Group.objects.get_or_create(name="Recepcionista")
+        usuario.groups.add(grupo)
+        self.client.force_login(usuario)
+
+        for estado, fecha in (
+            (Turno.Estado.RESERVADO, timezone.now() + timedelta(days=1)),
+            (Turno.Estado.ASIGNADO, timezone.now() + timedelta(days=2)),
+            (Turno.Estado.PRESENTE, timezone.now() - timedelta(days=1)),
+            (Turno.Estado.FINALIZADO, timezone.now() + timedelta(days=3)),
+            (Turno.Estado.FINALIZADO, timezone.now() - timedelta(days=2)),
+            (Turno.Estado.AUSENTE, timezone.now() + timedelta(days=4)),
+            (Turno.Estado.CANCELADO, timezone.now() + timedelta(days=5)),
+        ):
+            Turno.objects.create(
+                paciente=self.paciente,
+                tratamiento=self.consulta,
+                fecha_asistencia=fecha,
+                estado=estado,
+            )
+
+        respuesta = self.client.get(
+            reverse("paciente_detalle", kwargs={"dni": self.paciente.dni})
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "Más opciones", count=4)
+        self.assertContains(respuesta, "Volver a Asignado")
+        self.assertContains(respuesta, "Volver a Reservado")
+        self.assertContains(respuesta, "Reagendar")
+        self.assertContains(
+            respuesta,
+            'name="estado" value="presente" class="dropdown-item">Presente</button>',
+        )
+        self.assertContains(
+            respuesta,
+            'name="estado" value="finalizado" class="dropdown-item">Completado</button>',
+        )
+
     def test_resumen_mtc_muestra_cantidad_y_anios_distintos_en_el_mismo_cuadro(self):
         usuario = User.objects.create_user(username="paciente_mtc_completado")
         self.client.force_login(usuario)

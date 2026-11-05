@@ -32,8 +32,8 @@
                 <td>${{ tratamiento.precio_por_sesion|intcomma }}</td>
                 <td>
                   <div class="treatment-page-actions">
-                    <a href="{% url 'tratamiento_editar' tratamiento.id_tratamiento %}" class="btn btn-sm btn-outline-primary">Editar</a>
-                    <a href="{% url 'tratamiento_borrar' tratamiento.id_tratamiento %}" class="btn btn-sm btn-outline-danger">Borrar</a>
+                    <span class="btn btn-sm btn-outline-primary" aria-disabled="true">Editar</span>
+                    <span class="btn btn-sm btn-outline-danger" aria-disabled="true">Borrar</span>
                   </div>
                 </td>
               </tr>

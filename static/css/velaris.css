@@ -15,8 +15,45 @@ main.container {
 }
 
 .header-bar{
-    background-color: #002B66;
+    background-color: #265673d1;
     color: white;
+}
+
+.header-brand img {
+    display: block;
+    width: auto;
+    height: 72px;
+}
+
+.header-search {
+    width: min(40vw, 460px);
+}
+
+.header-search .form-control {
+    min-width: 0;
+}
+
+.header-user {
+    gap: 0.25rem;
+}
+
+.header-username {
+    color: #fff;
+    font-weight: 700;
+}
+
+.header-logout {
+    border: 2px solid #fff;
+    background: transparent;
+    color: #fff;
+    font-weight: 700;
+}
+
+.header-logout:hover,
+.header-logout:focus-visible {
+    border-color: #fff;
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
 }
 
 .main-navigation {
@@ -49,7 +86,7 @@ main.container {
 
 .main-navigation .nav-link:hover,
 .main-navigation .nav-link.active {
-    color: #1456b8;
+    color: #265673;
 }
 
 .main-navigation .nav-link.active {
@@ -63,7 +100,7 @@ main.container {
     left: 0.5rem;
     height: 3px;
     border-radius: 3px 3px 0 0;
-    background: #1456b8;
+    background: #265673;
     content: "";
 }
 
@@ -306,13 +343,13 @@ h2 {
 
 .submenu-item.active {
     background: #fff;
-    color: #1456b8;
+    color: #265673;
     font-weight: 650;
-    box-shadow: inset 0 -3px 0 #1456b8;
+    box-shadow: inset 0 -3px 0 #265673;
 }
 
 .submenu-item:not(.active):hover {
-    color: #1456b8;
+    color: #265673;
 }
 
 .card-header h3,
@@ -430,8 +467,8 @@ main.container form select:focus,
 main.container form textarea:focus,
 main.container .form-control:focus,
 main.container .form-select:focus {
-    border-color: #0b57c2;
-    box-shadow: 0 0 0 0.2rem rgba(11, 87, 194, 0.14);
+    border-color: #265673;
+    box-shadow: 0 0 0 0.2rem rgba(38, 86, 115, 0.14);
 }
 
 main.container .btn {
@@ -441,13 +478,13 @@ main.container .btn {
 }
 
 main.container .btn-primary {
-    border-color: #0b57c2;
-    background-color: #0b57c2;
+    border-color: #265673;
+    background-color: #265673;
 }
 
 main.container .btn-primary:hover {
-    border-color: #0849a6;
-    background-color: #0849a6;
+    border-color: #1d435a;
+    background-color: #1d435a;
 }
 
 main.container .btn-secondary {
@@ -687,8 +724,8 @@ main.container .table thead th {
 
 .patient-form-field .form-control:focus,
 .patient-form-field .form-select:focus {
-    border-color: #0b57c2;
-    box-shadow: 0 0 0 0.2rem rgba(11, 87, 194, 0.14);
+    border-color: #265673;
+    box-shadow: 0 0 0 0.2rem rgba(38, 86, 115, 0.14);
 }
 
 .patient-form-field:has(.errorlist) .form-control,
@@ -737,14 +774,14 @@ main.container .table thead th {
 
 .patient-form-submit {
     flex: 1;
-    border: 1px solid #0b57c2;
-    background: #0b57c2;
+    border: 1px solid #265673;
+    background: #265673;
     color: #fff;
 }
 
 .patient-form-submit:hover {
-    border-color: #0849a6;
-    background: #0849a6;
+    border-color: #1d435a;
+    background: #1d435a;
     color: #fff;
 }
 
@@ -1067,6 +1104,20 @@ main.container .table thead th {
 
     .patient-form-actions .btn-danger {
         flex-basis: 100%;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .header-bar .container-fluid {
+        row-gap: 0.75rem;
+    }
+
+    .header-search {
+        order: 1;
+        width: 100%;
+        max-width: 460px;
+        margin-right: auto !important;
+        margin-left: auto !important;
     }
 }
 

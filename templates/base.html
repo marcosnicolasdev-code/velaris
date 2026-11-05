@@ -12,16 +12,15 @@
   <nav class="navbar navbar-dark header-bar">
       <div class="container-fluid">
       <!-- Logo de Velaris -->
-      <a class="navbar-brand" href="{% url 'inicio' %}">
-        <img src="{% static 'css/img/logoVelarisSup.png' %}" alt="Logo" height= "60">
+      <a class="navbar-brand header-brand" href="{% url 'inicio' %}">
+        <img src="{% static 'css/img/logoVelarisSup.png' %}" alt="Velaris">
       </a>
       <!-- Barra buscador pacientes -->
       {% if user.is_authenticated %}
-      <form class="d-flex mx-auto"
+      <form class="d-flex mx-auto header-search"
       method="get"
       action="{% url 'paciente_lista' %}"
       role="search"
-      style="width: 40%;"
       autocomplete="off"
     >
       <input
@@ -39,11 +38,11 @@
       <button class="btn btn-light" type="submit">Buscar</button>
         </form>
       <!-- Usuario + cerrar sesión --> 
-      <div class="d-flex align-items-center text-white">
-        <span class="me-3">{{ user.get_full_name | default:user.username }}</span>
+      <div class="d-flex align-items-center header-user">
+        <span class="me-3 header-username">{{ user.get_full_name | default:user.username }}</span>
         <form method="post" action="{% url 'logout' %}" class="m-0">
           {% csrf_token %}
-          <button class="btn btn-outline-light btn-sm" type="submit">Cerrar sesión</button>
+          <button class="btn btn-sm header-logout" type="submit">Cerrar sesión</button>
         </form>
       </div>
       {% endif %}

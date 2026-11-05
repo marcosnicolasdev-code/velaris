@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.db.models import Sum
 
 from pacientes.models import Turno
+from .permissions import exigir_acceso_secciones_administrativas
 
 # Create your views here.
 
@@ -62,6 +63,7 @@ def inicio(request):
 #READ - listar todas las cajas
 @login_required
 def caja_lista(request):
+    exigir_acceso_secciones_administrativas(request.user)
     cajas = Caja.objects.all() #Trae todas las cajas (ORM)
     return render (request, "usuarios/caja_lista.html", {"cajas": cajas})
 
@@ -70,6 +72,7 @@ def caja_lista(request):
 #UPDATE - editar una caja existente
 @login_required
 def caja_editar(request, id):
+    exigir_acceso_secciones_administrativas(request.user)
     caja = get_object_or_404(Caja, id=id)
     if request.method == "POST":
         form = CajaForm (request.POST, instance=caja) # Solicita que empiece con los datos de esa caja
@@ -83,6 +86,7 @@ def caja_editar(request, id):
 #DELETE - borrar una caja
 @login_required
 def caja_borrar(request, id):
+    exigir_acceso_secciones_administrativas(request.user)
     caja = get_object_or_404(Caja, id=id)
     if request.method == "POST":
         caja.delete()
@@ -94,6 +98,7 @@ def caja_borrar(request, id):
 # CREATE - Registrar un movimiento de caja (ingreso o egreso)
 @login_required
 def registrar_movimiento(request):
+    exigir_acceso_secciones_administrativas(request.user)
     # Busca la caja del usuario actualmente logueado (request.user)
     caja = get_object_or_404(Caja, usuario=request.user)
 
@@ -113,6 +118,7 @@ def registrar_movimiento(request):
 
 @login_required
 def caja_movimientos(request, id=None):
+    exigir_acceso_secciones_administrativas(request.user)
     # Si viene un id, es esa caja; si no, la del usuario logueado
     if id:
         caja = get_object_or_404(Caja, id=id)
@@ -149,6 +155,7 @@ def caja_movimientos(request, id=None):
 
 @login_required
 def caja_detalle(request, id):
+    exigir_acceso_secciones_administrativas(request.user)
     caja = get_object_or_404(Caja, id=id)
     hoy = timezone.localdate()
 
@@ -177,12 +184,14 @@ def caja_detalle(request, id):
 #READ - listar todos los profesionales
 @login_required
 def profesional_lista(request):
+    exigir_acceso_secciones_administrativas(request.user)
     profesionales = Profesional.objects.all()
     return render(request, "usuarios/profesional_lista.html", {"profesionales": profesionales})
 
 #CREATE - crear un profesional nuevo
 @login_required
 def profesional_crear(request):
+    exigir_acceso_secciones_administrativas(request.user)
     if request.method == "POST":
         form = ProfesionalForm(request.POST)
         if form.is_valid():
@@ -195,6 +204,7 @@ def profesional_crear(request):
 #UPDATE - editar un profesional existente
 @login_required
 def profesional_editar(request, id):
+    exigir_acceso_secciones_administrativas(request.user)
     profesional = get_object_or_404(Profesional, id=id)
     if request.method == "POST":
         form = ProfesionalForm(request.POST, instance=profesional)
@@ -208,6 +218,7 @@ def profesional_editar(request, id):
 #DELETE - borrar un profesional
 @login_required
 def profesional_borrar(request, id):
+    exigir_acceso_secciones_administrativas(request.user)
     profesional = get_object_or_404(Profesional, id=id)
     if request.method == "POST":
         profesional.delete()

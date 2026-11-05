@@ -21,6 +21,59 @@ class PermisosGrupoTests(TestCase):
         self.assertTrue(usuario.has_perm("pacientes.view_paciente"))
         self.assertTrue(usuario.has_perm("pacientes.change_paciente"))
 
+    def test_medico_no_ve_secciones_administrativas_y_no_puede_abrirlas(self):
+        usuario = User.objects.create_user(username="medico_sin_administracion")
+        grupo = Group.objects.get_or_create(name="Médico")[0]
+        usuario.groups.add(grupo)
+        self.client.force_login(usuario)
+
+        inicio = self.client.get(reverse("inicio"))
+        self.assertEqual(inicio.status_code, 200)
+        for opcion in ("Nueva venta", "Stock", "Nuevo profesional", "Caja"):
+            self.assertNotContains(inicio, opcion)
+
+        rutas_restringidas = (
+            "producto_lista",
+            "producto_crear",
+            "producto_editar",
+            "producto_borrar",
+            "profesional_lista",
+            "profesional_crear",
+            "profesional_editar",
+            "profesional_borrar",
+            "caja_lista",
+            "caja_editar",
+            "caja_borrar",
+            "registrar_movimiento",
+            "caja_movimientos",
+        )
+        argumentos = {
+            "producto_editar": {"codigo": "inexistente"},
+            "producto_borrar": {"codigo": "inexistente"},
+            "profesional_editar": {"id": 999},
+            "profesional_borrar": {"id": 999},
+            "caja_editar": {"id": 999},
+            "caja_borrar": {"id": 999},
+        }
+        for nombre_ruta in rutas_restringidas:
+            with self.subTest(ruta=nombre_ruta):
+                respuesta = self.client.get(
+                    reverse(nombre_ruta, kwargs=argumentos.get(nombre_ruta))
+                )
+                self.assertEqual(respuesta.status_code, 403)
+
+    def test_recepcionista_conserva_acceso_a_secciones_administrativas(self):
+        usuario = User.objects.create_user(username="recepcion_menu_administracion")
+        grupo = Group.objects.get_or_create(name="Recepcionista")[0]
+        usuario.groups.add(grupo)
+        self.client.force_login(usuario)
+
+        inicio = self.client.get(reverse("inicio"))
+
+        self.assertEqual(inicio.status_code, 200)
+        for opcion in ("Nueva venta", "Stock", "Nuevo profesional", "Caja"):
+            self.assertContains(inicio, opcion)
+
 
 class CajaMovimientoTests(TestCase):
     def setUp(self):

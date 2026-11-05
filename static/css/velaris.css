@@ -1049,6 +1049,12 @@ main.container .table thead th {
     border-color: #b8bdc5;
     border-radius: 10px 0 0 10px;
     background: #f7f8fa;
+    color: #4b5563;
+}
+
+.auth-card .input-group-text .field-icon {
+    width: 1.1rem;
+    height: 1.1rem;
 }
 
 .auth-card .input-group .form-control {

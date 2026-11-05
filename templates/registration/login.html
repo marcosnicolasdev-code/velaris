@@ -6,7 +6,8 @@
 <div class="row justify-content-between align-items-center my-5">
     <div class="col-md-6 col-lg-7 d-none d-md-block">
         <div class="d-flex justify-content-center align-items-center h-100">
-            <img src="{% static 'css/img/velarisImagenV3.png' %}" alt="Imagen Login" class="img-fluid position-relative z-1 me-auto" style="max-height: 500px; width: auto;">        </div>
+            <img src="{% static 'css/img/velaris-login.png' %}" alt="Logo de Velaris" class="img-fluid position-relative z-1 me-auto" style="max-height: 500px; width: auto;">
+        </div>
     </div>
     <div class="col-md-6 col-lg-4">
         <div class="card auth-card">
@@ -25,7 +26,9 @@
                     <div class="mb-3">
                         <label for="id_username" class="form-label">Usuario</label>
                         <div class="input-group">
-                         <span class="input-group-text">👤</span>
+                         <span class="input-group-text">
+                            <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="7" r="3.5"></circle><path d="M4.5 21v-2a7.5 7.5 0 0 1 15 0v2"></path></svg>
+                         </span>
                         <input type="text" name="username" id="id_username" autofocus maxlength="254" class="form-control" required>
                         </div>
                     </div>
@@ -33,7 +36,9 @@
                     <div class="mb-3">
                         <label for="id_password" class="form-label">Contraseña</label>
                           <div class="input-group">
-                            <span class="input-group-text">🔒</span>
+                            <span class="input-group-text">
+                                <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4.5" y="10" width="15" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"></path></svg>
+                            </span>
                              <input type="password" name="password" class="form-control" id="id_password" placeholder="Tu contraseña">
                         </div>
                     </div>

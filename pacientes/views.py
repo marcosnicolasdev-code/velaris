@@ -1008,11 +1008,7 @@ def agenda_disponibilidad_json(request):
             turnos_agenda = [turno for turno in turnos_agenda if str(turno.pk) != turno_actual_id]
         ocupados = [
             turno for turno in turnos_agenda
-            if turno.estado in {
-                Turno.Estado.RESERVADO,
-                Turno.Estado.ASIGNADO,
-                Turno.Estado.PRESENTE,
-            }
+            if turno.estado in Turno.ESTADOS_QUE_OCUPAN_HORARIO
         ]
         eventos = []
         fecha_actual = desde
@@ -1134,11 +1130,7 @@ def agenda_disponibilidad_json(request):
             turnos_ocupados_dia = list(
                 Turno.objects.select_related("tratamiento").filter(
                     tratamiento__agenda_categoria=categoria,
-                    estado__in=[
-                        Turno.Estado.RESERVADO,
-                        Turno.Estado.ASIGNADO,
-                        Turno.Estado.PRESENTE,
-                    ],
+                    estado__in=Turno.ESTADOS_QUE_OCUPAN_HORARIO,
                     fecha_asistencia__date=fecha_actual,
                 )
             )

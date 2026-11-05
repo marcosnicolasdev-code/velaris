@@ -684,6 +684,54 @@ class AgendaAvailabilityTests(TestCase):
         self.assertIn("Sofía", ocupados[0]["title"])
         self.assertIn("Asignado", ocupados[0]["title"])
 
+    def test_turno_completado_futuro_sigue_ocupando_su_horario(self):
+        usuario = User.objects.create_user(username="recepcion_turno_completado_futuro")
+        grupo, _ = Group.objects.get_or_create(name="Recepcionista")
+        usuario.groups.add(grupo)
+        self.client.force_login(usuario)
+        fecha_asistencia = self.fecha_semana(10)
+        inicio = timezone.make_aware(timezone.datetime.fromisoformat(fecha_asistencia))
+        Turno.objects.create(
+            paciente=self.paciente,
+            tratamiento=self.ntf,
+            indicacion_medica=self.indicacion,
+            fecha_asistencia=inicio,
+            estado=Turno.Estado.FINALIZADO,
+        )
+
+        calendario = self.client.get(
+            reverse("agenda_disponibilidad_json"),
+            {
+                "tratamiento": self.ntf.pk,
+                "dni": self.paciente.dni,
+                "start": fecha_asistencia[:10],
+                "end": (inicio.date() + timedelta(days=1)).isoformat(),
+            },
+        ).json()
+        disponibles = [
+            evento for evento in calendario
+            if evento["extendedProps"].get("disponible")
+        ]
+        self.assertFalse(any(evento["start"] == inicio.isoformat() for evento in disponibles))
+
+        respuesta = self.client.post(
+            reverse("agenda_asignar_turno_disponible"),
+            {
+                "dni": self.paciente.dni,
+                "tratamiento": self.ntf.pk,
+                "fecha_asistencia": fecha_asistencia,
+            },
+        )
+
+        self.assertEqual(respuesta.status_code, 400)
+        self.assertEqual(
+            Turno.objects.filter(
+                paciente=self.paciente,
+                fecha_asistencia=inicio,
+            ).count(),
+            1,
+        )
+
     def test_calendario_sin_tratamiento_muestra_disponibilidad_por_tratamiento_y_categoria(self):
         usuario = User.objects.create_user(username="recepcion_resumen", password="secret123")
         grupo, _ = Group.objects.get_or_create(name="Recepcionista")

@@ -253,11 +253,7 @@ class AgendarTurnoForm(forms.ModelForm):
 
         conflicto = False
         for otro in Turno.objects.filter(
-            estado__in=[
-                Turno.Estado.RESERVADO,
-                Turno.Estado.ASIGNADO,
-                Turno.Estado.PRESENTE,
-            ]
+            estado__in=Turno.ESTADOS_QUE_OCUPAN_HORARIO
         ).exclude(pk=self.instance.pk):
             otro_inicio = otro.fecha_asistencia
             otra_duracion = (

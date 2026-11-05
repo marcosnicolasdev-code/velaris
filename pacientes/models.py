@@ -51,6 +51,13 @@ class Turno(models.Model):
         AUSENTE = "ausente", "Ausente"
         CANCELADO = "cancelado", "Cancelado"
 
+    ESTADOS_QUE_OCUPAN_HORARIO = (
+        Estado.RESERVADO,
+        Estado.ASIGNADO,
+        Estado.PRESENTE,
+        Estado.FINALIZADO,
+    )
+
     plan = models.ForeignKey(
         "tratamientos.PlanPago",
         on_delete=models.PROTECT,
@@ -169,4 +176,3 @@ class EvaluacionMedica(models.Model):
     )
     fecha_evaluacion = models.DateField()
     descripcion = models.TextField()
-

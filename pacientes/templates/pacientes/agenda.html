@@ -203,19 +203,18 @@
                 headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
                 eventContent: function (info) {
                     const props = info.event.extendedProps;
-                    if (props.disponible) {
-                        const textoDisponible = document.createElement('span');
-                        textoDisponible.textContent = [info.timeText, info.event.title].filter(Boolean).join(' ');
-                        return { domNodes: [textoDisponible] };
-                    }
-                    if (!props.estadoCodigo) return;
+                    if (!props.disponible && !props.estadoCodigo) return;
                     const texto = document.createElement('span');
-                    const hora = info.event.start.toLocaleTimeString('es-AR', {
+                    texto.className = 'agenda-event-label';
+                    const hora = info.timeText || info.event.start.toLocaleTimeString('es-AR', {
                         hour: '2-digit',
                         minute: '2-digit',
                         hour12: false
                     });
-                    texto.textContent = `${props.prestacion} · ${props.apellido}, ${props.nombre} · ${hora}`;
+                    texto.textContent = props.disponible
+                        ? `${hora} · ${props.tratamientoNombre || 'Disponible'}`
+                        : `${hora} · ${props.apellido}, ${props.nombre} · ${props.prestacion}`;
+                    texto.title = texto.textContent;
                     return { domNodes: [texto] };
                 },
                 events: function (info, success, failure) {

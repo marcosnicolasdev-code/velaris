@@ -1,0 +1,1727 @@
+[
+{
+  "model": "auth.group",
+  "fields": {
+    "name": "CEO",
+    "permissions": [
+      [
+        "add_evaluacionmedica",
+        "pacientes",
+        "evaluacionmedica"
+      ],
+      [
+        "change_evaluacionmedica",
+        "pacientes",
+        "evaluacionmedica"
+      ],
+      [
+        "delete_evaluacionmedica",
+        "pacientes",
+        "evaluacionmedica"
+      ],
+      [
+        "view_evaluacionmedica",
+        "pacientes",
+        "evaluacionmedica"
+      ],
+      [
+        "add_evolucion",
+        "pacientes",
+        "evolucion"
+      ],
+      [
+        "change_evolucion",
+        "pacientes",
+        "evolucion"
+      ],
+      [
+        "delete_evolucion",
+        "pacientes",
+        "evolucion"
+      ],
+      [
+        "view_evolucion",
+        "pacientes",
+        "evolucion"
+      ],
+      [
+        "add_historiaclinica",
+        "pacientes",
+        "historiaclinica"
+      ],
+      [
+        "change_historiaclinica",
+        "pacientes",
+        "historiaclinica"
+      ],
+      [
+        "delete_historiaclinica",
+        "pacientes",
+        "historiaclinica"
+      ],
+      [
+        "view_historiaclinica",
+        "pacientes",
+        "historiaclinica"
+      ],
+      [
+        "add_paciente",
+        "pacientes",
+        "paciente"
+      ],
+      [
+        "change_paciente",
+        "pacientes",
+        "paciente"
+      ],
+      [
+        "delete_paciente",
+        "pacientes",
+        "paciente"
+      ],
+      [
+        "view_paciente",
+        "pacientes",
+        "paciente"
+      ],
+      [
+        "add_turno",
+        "pacientes",
+        "turno"
+      ],
+      [
+        "change_turno",
+        "pacientes",
+        "turno"
+      ],
+      [
+        "delete_turno",
+        "pacientes",
+        "turno"
+      ],
+      [
+        "view_turno",
+        "pacientes",
+        "turno"
+      ],
+      [
+        "add_planpago",
+        "tratamientos",
+        "planpago"
+      ],
+      [
+        "change_planpago",
+        "tratamientos",
+        "planpago"
+      ],
+      [
+        "delete_planpago",
+        "tratamientos",
+        "planpago"
+      ],
+      [
+        "view_planpago",
+        "tratamientos",
+        "planpago"
+      ],
+      [
+        "add_receta",
+        "tratamientos",
+        "receta"
+      ],
+      [
+        "change_receta",
+        "tratamientos",
+        "receta"
+      ],
+      [
+        "delete_receta",
+        "tratamientos",
+        "receta"
+      ],
+      [
+        "view_receta",
+        "tratamientos",
+        "receta"
+      ],
+      [
+        "add_sesion",
+        "tratamientos",
+        "sesion"
+      ],
+      [
+        "change_sesion",
+        "tratamientos",
+        "sesion"
+      ],
+      [
+        "delete_sesion",
+        "tratamientos",
+        "sesion"
+      ],
+      [
+        "view_sesion",
+        "tratamientos",
+        "sesion"
+      ],
+      [
+        "add_tratamiento",
+        "tratamientos",
+        "tratamiento"
+      ],
+      [
+        "change_tratamiento",
+        "tratamientos",
+        "tratamiento"
+      ],
+      [
+        "delete_tratamiento",
+        "tratamientos",
+        "tratamiento"
+      ],
+      [
+        "view_tratamiento",
+        "tratamientos",
+        "tratamiento"
+      ],
+      [
+        "add_caja",
+        "usuarios",
+        "caja"
+      ],
+      [
+        "change_caja",
+        "usuarios",
+        "caja"
+      ],
+      [
+        "delete_caja",
+        "usuarios",
+        "caja"
+      ],
+      [
+        "view_caja",
+        "usuarios",
+        "caja"
+      ],
+      [
+        "add_movimientocaja",
+        "usuarios",
+        "movimientocaja"
+      ],
+      [
+        "change_movimientocaja",
+        "usuarios",
+        "movimientocaja"
+      ],
+      [
+        "delete_movimientocaja",
+        "usuarios",
+        "movimientocaja"
+      ],
+      [
+        "view_movimientocaja",
+        "usuarios",
+        "movimientocaja"
+      ],
+      [
+        "add_profesional",
+        "usuarios",
+        "profesional"
+      ],
+      [
+        "change_profesional",
+        "usuarios",
+        "profesional"
+      ],
+      [
+        "delete_profesional",
+        "usuarios",
+        "profesional"
+      ],
+      [
+        "view_profesional",
+        "usuarios",
+        "profesional"
+      ]
+    ]
+  }
+},
+{
+  "model": "auth.group",
+  "fields": {
+    "name": "Recepcionista",
+    "permissions": [
+      [
+        "add_evolucion",
+        "pacientes",
+        "evolucion"
+      ],
+      [
+        "change_evolucion",
+        "pacientes",
+        "evolucion"
+      ],
+      [
+        "delete_evolucion",
+        "pacientes",
+        "evolucion"
+      ],
+      [
+        "view_evolucion",
+        "pacientes",
+        "evolucion"
+      ],
+      [
+        "add_historiaclinica",
+        "pacientes",
+        "historiaclinica"
+      ],
+      [
+        "change_historiaclinica",
+        "pacientes",
+        "historiaclinica"
+      ],
+      [
+        "delete_historiaclinica",
+        "pacientes",
+        "historiaclinica"
+      ],
+      [
+        "view_historiaclinica",
+        "pacientes",
+        "historiaclinica"
+      ],
+      [
+        "add_paciente",
+        "pacientes",
+        "paciente"
+      ],
+      [
+        "change_paciente",
+        "pacientes",
+        "paciente"
+      ],
+      [
+        "delete_paciente",
+        "pacientes",
+        "paciente"
+      ],
+      [
+        "view_paciente",
+        "pacientes",
+        "paciente"
+      ],
+      [
+        "add_turno",
+        "pacientes",
+        "turno"
+      ],
+      [
+        "change_turno",
+        "pacientes",
+        "turno"
+      ],
+      [
+        "delete_turno",
+        "pacientes",
+        "turno"
+      ],
+      [
+        "view_turno",
+        "pacientes",
+        "turno"
+      ],
+      [
+        "add_planpago",
+        "tratamientos",
+        "planpago"
+      ],
+      [
+        "change_planpago",
+        "tratamientos",
+        "planpago"
+      ],
+      [
+        "delete_planpago",
+        "tratamientos",
+        "planpago"
+      ],
+      [
+        "view_planpago",
+        "tratamientos",
+        "planpago"
+      ],
+      [
+        "add_sesion",
+        "tratamientos",
+        "sesion"
+      ],
+      [
+        "change_sesion",
+        "tratamientos",
+        "sesion"
+      ],
+      [
+        "delete_sesion",
+        "tratamientos",
+        "sesion"
+      ],
+      [
+        "view_sesion",
+        "tratamientos",
+        "sesion"
+      ],
+      [
+        "add_caja",
+        "usuarios",
+        "caja"
+      ],
+      [
+        "change_caja",
+        "usuarios",
+        "caja"
+      ],
+      [
+        "delete_caja",
+        "usuarios",
+        "caja"
+      ],
+      [
+        "view_caja",
+        "usuarios",
+        "caja"
+      ],
+      [
+        "add_movimientocaja",
+        "usuarios",
+        "movimientocaja"
+      ],
+      [
+        "change_movimientocaja",
+        "usuarios",
+        "movimientocaja"
+      ],
+      [
+        "delete_movimientocaja",
+        "usuarios",
+        "movimientocaja"
+      ],
+      [
+        "view_movimientocaja",
+        "usuarios",
+        "movimientocaja"
+      ]
+    ]
+  }
+},
+{
+  "model": "auth.group",
+  "fields": {
+    "name": "Médico",
+    "permissions": [
+      [
+        "add_evaluacionmedica",
+        "pacientes",
+        "evaluacionmedica"
+      ],
+      [
+        "change_evaluacionmedica",
+        "pacientes",
+        "evaluacionmedica"
+      ],
+      [
+        "delete_evaluacionmedica",
+        "pacientes",
+        "evaluacionmedica"
+      ],
+      [
+        "view_evaluacionmedica",
+        "pacientes",
+        "evaluacionmedica"
+      ],
+      [
+        "add_evolucion",
+        "pacientes",
+        "evolucion"
+      ],
+      [
+        "change_evolucion",
+        "pacientes",
+        "evolucion"
+      ],
+      [
+        "delete_evolucion",
+        "pacientes",
+        "evolucion"
+      ],
+      [
+        "view_evolucion",
+        "pacientes",
+        "evolucion"
+      ],
+      [
+        "add_historiaclinica",
+        "pacientes",
+        "historiaclinica"
+      ],
+      [
+        "change_historiaclinica",
+        "pacientes",
+        "historiaclinica"
+      ],
+      [
+        "delete_historiaclinica",
+        "pacientes",
+        "historiaclinica"
+      ],
+      [
+        "view_historiaclinica",
+        "pacientes",
+        "historiaclinica"
+      ],
+      [
+        "add_paciente",
+        "pacientes",
+        "paciente"
+      ],
+      [
+        "change_paciente",
+        "pacientes",
+        "paciente"
+      ],
+      [
+        "delete_paciente",
+        "pacientes",
+        "paciente"
+      ],
+      [
+        "view_paciente",
+        "pacientes",
+        "paciente"
+      ],
+      [
+        "add_turno",
+        "pacientes",
+        "turno"
+      ],
+      [
+        "change_turno",
+        "pacientes",
+        "turno"
+      ],
+      [
+        "delete_turno",
+        "pacientes",
+        "turno"
+      ],
+      [
+        "view_turno",
+        "pacientes",
+        "turno"
+      ],
+      [
+        "add_planpago",
+        "tratamientos",
+        "planpago"
+      ],
+      [
+        "change_planpago",
+        "tratamientos",
+        "planpago"
+      ],
+      [
+        "delete_planpago",
+        "tratamientos",
+        "planpago"
+      ],
+      [
+        "view_planpago",
+        "tratamientos",
+        "planpago"
+      ],
+      [
+        "add_receta",
+        "tratamientos",
+        "receta"
+      ],
+      [
+        "change_receta",
+        "tratamientos",
+        "receta"
+      ],
+      [
+        "delete_receta",
+        "tratamientos",
+        "receta"
+      ],
+      [
+        "view_receta",
+        "tratamientos",
+        "receta"
+      ],
+      [
+        "add_sesion",
+        "tratamientos",
+        "sesion"
+      ],
+      [
+        "change_sesion",
+        "tratamientos",
+        "sesion"
+      ],
+      [
+        "delete_sesion",
+        "tratamientos",
+        "sesion"
+      ],
+      [
+        "view_sesion",
+        "tratamientos",
+        "sesion"
+      ],
+      [
+        "add_tratamiento",
+        "tratamientos",
+        "tratamiento"
+      ],
+      [
+        "change_tratamiento",
+        "tratamientos",
+        "tratamiento"
+      ],
+      [
+        "delete_tratamiento",
+        "tratamientos",
+        "tratamiento"
+      ],
+      [
+        "view_tratamiento",
+        "tratamientos",
+        "tratamiento"
+      ],
+      [
+        "add_profesional",
+        "usuarios",
+        "profesional"
+      ],
+      [
+        "change_profesional",
+        "usuarios",
+        "profesional"
+      ],
+      [
+        "delete_profesional",
+        "usuarios",
+        "profesional"
+      ],
+      [
+        "view_profesional",
+        "usuarios",
+        "profesional"
+      ]
+    ]
+  }
+},
+{
+  "model": "auth.group",
+  "fields": {
+    "name": "Enfermero",
+    "permissions": [
+      [
+        "add_evolucion",
+        "pacientes",
+        "evolucion"
+      ],
+      [
+        "change_evolucion",
+        "pacientes",
+        "evolucion"
+      ],
+      [
+        "delete_evolucion",
+        "pacientes",
+        "evolucion"
+      ],
+      [
+        "view_evolucion",
+        "pacientes",
+        "evolucion"
+      ],
+      [
+        "add_historiaclinica",
+        "pacientes",
+        "historiaclinica"
+      ],
+      [
+        "change_historiaclinica",
+        "pacientes",
+        "historiaclinica"
+      ],
+      [
+        "delete_historiaclinica",
+        "pacientes",
+        "historiaclinica"
+      ],
+      [
+        "view_historiaclinica",
+        "pacientes",
+        "historiaclinica"
+      ],
+      [
+        "add_paciente",
+        "pacientes",
+        "paciente"
+      ],
+      [
+        "change_paciente",
+        "pacientes",
+        "paciente"
+      ],
+      [
+        "delete_paciente",
+        "pacientes",
+        "paciente"
+      ],
+      [
+        "view_paciente",
+        "pacientes",
+        "paciente"
+      ],
+      [
+        "add_turno",
+        "pacientes",
+        "turno"
+      ],
+      [
+        "change_turno",
+        "pacientes",
+        "turno"
+      ],
+      [
+        "delete_turno",
+        "pacientes",
+        "turno"
+      ],
+      [
+        "view_turno",
+        "pacientes",
+        "turno"
+      ]
+    ]
+  }
+},
+{
+  "model": "auth.group",
+  "fields": {
+    "name": "Instrumentador",
+    "permissions": [
+      [
+        "add_evolucion",
+        "pacientes",
+        "evolucion"
+      ],
+      [
+        "change_evolucion",
+        "pacientes",
+        "evolucion"
+      ],
+      [
+        "delete_evolucion",
+        "pacientes",
+        "evolucion"
+      ],
+      [
+        "view_evolucion",
+        "pacientes",
+        "evolucion"
+      ],
+      [
+        "add_historiaclinica",
+        "pacientes",
+        "historiaclinica"
+      ],
+      [
+        "change_historiaclinica",
+        "pacientes",
+        "historiaclinica"
+      ],
+      [
+        "delete_historiaclinica",
+        "pacientes",
+        "historiaclinica"
+      ],
+      [
+        "view_historiaclinica",
+        "pacientes",
+        "historiaclinica"
+      ],
+      [
+        "add_paciente",
+        "pacientes",
+        "paciente"
+      ],
+      [
+        "change_paciente",
+        "pacientes",
+        "paciente"
+      ],
+      [
+        "delete_paciente",
+        "pacientes",
+        "paciente"
+      ],
+      [
+        "view_paciente",
+        "pacientes",
+        "paciente"
+      ],
+      [
+        "add_turno",
+        "pacientes",
+        "turno"
+      ],
+      [
+        "change_turno",
+        "pacientes",
+        "turno"
+      ],
+      [
+        "delete_turno",
+        "pacientes",
+        "turno"
+      ],
+      [
+        "view_turno",
+        "pacientes",
+        "turno"
+      ]
+    ]
+  }
+},
+{
+  "model": "auth.group",
+  "fields": {
+    "name": "Administrativo",
+    "permissions": [
+      [
+        "add_paciente",
+        "pacientes",
+        "paciente"
+      ],
+      [
+        "change_paciente",
+        "pacientes",
+        "paciente"
+      ],
+      [
+        "delete_paciente",
+        "pacientes",
+        "paciente"
+      ],
+      [
+        "view_paciente",
+        "pacientes",
+        "paciente"
+      ],
+      [
+        "add_turno",
+        "pacientes",
+        "turno"
+      ],
+      [
+        "change_turno",
+        "pacientes",
+        "turno"
+      ],
+      [
+        "delete_turno",
+        "pacientes",
+        "turno"
+      ],
+      [
+        "view_turno",
+        "pacientes",
+        "turno"
+      ],
+      [
+        "add_planpago",
+        "tratamientos",
+        "planpago"
+      ],
+      [
+        "change_planpago",
+        "tratamientos",
+        "planpago"
+      ],
+      [
+        "delete_planpago",
+        "tratamientos",
+        "planpago"
+      ],
+      [
+        "view_planpago",
+        "tratamientos",
+        "planpago"
+      ],
+      [
+        "add_sesion",
+        "tratamientos",
+        "sesion"
+      ],
+      [
+        "change_sesion",
+        "tratamientos",
+        "sesion"
+      ],
+      [
+        "delete_sesion",
+        "tratamientos",
+        "sesion"
+      ],
+      [
+        "view_sesion",
+        "tratamientos",
+        "sesion"
+      ],
+      [
+        "add_caja",
+        "usuarios",
+        "caja"
+      ],
+      [
+        "change_caja",
+        "usuarios",
+        "caja"
+      ],
+      [
+        "delete_caja",
+        "usuarios",
+        "caja"
+      ],
+      [
+        "view_caja",
+        "usuarios",
+        "caja"
+      ],
+      [
+        "add_movimientocaja",
+        "usuarios",
+        "movimientocaja"
+      ],
+      [
+        "change_movimientocaja",
+        "usuarios",
+        "movimientocaja"
+      ],
+      [
+        "delete_movimientocaja",
+        "usuarios",
+        "movimientocaja"
+      ],
+      [
+        "view_movimientocaja",
+        "usuarios",
+        "movimientocaja"
+      ]
+    ]
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$pqHFMQm5JrQWTQcnVMpIo0$968TnSQ5FNa6K2/jFWH0qsV7UAZkh6hI+vgpUmZAac4=",
+    "last_login": "2026-11-05T02:51:14.639Z",
+    "is_superuser": true,
+    "username": "Marcos",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-09-23T03:00:00.031Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$ERS2viDkhwlzLY2KGsX5m5$5nG3B+1PBjyMuy3d5p7HxpKI5TJHLS4hW3Adn/0uOa8=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "Enfermero_Matias",
+    "first_name": "Matias",
+    "last_name": "Enfermero",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-09-23T03:07:22Z",
+    "groups": [
+      [
+        "Enfermero"
+      ]
+    ],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$LmavahmMMkoG3FZYdUVqva$qSH9f2hT995pYttc/3ENg5puwkQhbGs5vrdj4F6BdrA=",
+    "last_login": "2026-11-05T02:51:37.593Z",
+    "is_superuser": false,
+    "username": "Recepcionista_Ailen",
+    "first_name": "Ailen",
+    "last_name": "Recepcionista",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-09-23T03:07:56Z",
+    "groups": [
+      [
+        "Recepcionista"
+      ]
+    ],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$72NqSUXEAtleTL8dO27gxT$CF/q7/M1RdXKlvj/4q3hW+NS+sJYI+xQoqIjGsDOab8=",
+    "last_login": "2026-11-05T02:51:24.645Z",
+    "is_superuser": false,
+    "username": "Dr_Garcia_Pedro",
+    "first_name": "Garcia",
+    "last_name": "Pedro Medico",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-09-23T03:08:26Z",
+    "groups": [
+      [
+        "Médico"
+      ]
+    ],
+    "user_permissions": []
+  }
+},
+{
+  "model": "usuarios.profesional",
+  "pk": 1,
+  "fields": {
+    "usuario": [
+      "Marcos"
+    ],
+    "matricula": "23332",
+    "especialidad": "2323"
+  }
+},
+{
+  "model": "usuarios.caja",
+  "pk": 1,
+  "fields": {
+    "usuario": [
+      "Recepcionista_Ailen"
+    ],
+    "total_caja": 0,
+    "apertura_caja": "2026-09-23T03:08:06.939Z",
+    "cierre_caja": null
+  }
+},
+{
+  "model": "usuarios.movimientocaja",
+  "pk": 1,
+  "fields": {
+    "caja": 1,
+    "tipo_movimiento": "ingreso",
+    "categoria_movimiento": "venta",
+    "descripcion_movimiento": "shampoo",
+    "importe_movimiento": 2000,
+    "fecha_movimiento": "2026-09-24T02:36:00.333Z"
+  }
+},
+{
+  "model": "usuarios.movimientocaja",
+  "pk": 2,
+  "fields": {
+    "caja": 1,
+    "tipo_movimiento": "ingreso",
+    "categoria_movimiento": "venta",
+    "descripcion_movimiento": "shampoo",
+    "importe_movimiento": 20000,
+    "fecha_movimiento": "2026-09-24T02:36:12.938Z"
+  }
+},
+{
+  "model": "usuarios.movimientocaja",
+  "pk": 3,
+  "fields": {
+    "caja": 1,
+    "tipo_movimiento": "ingreso",
+    "categoria_movimiento": "venta",
+    "descripcion_movimiento": "dsfdsaf",
+    "importe_movimiento": 22,
+    "fecha_movimiento": "2026-09-24T13:43:58.996Z"
+  }
+},
+{
+  "model": "usuarios.movimientocaja",
+  "pk": 4,
+  "fields": {
+    "caja": 1,
+    "tipo_movimiento": "ingreso",
+    "categoria_movimiento": "venta",
+    "descripcion_movimiento": "sfasf",
+    "importe_movimiento": 1500,
+    "fecha_movimiento": "2026-11-04T02:02:02.058Z"
+  }
+},
+{
+  "model": "usuarios.movimientocaja",
+  "pk": 5,
+  "fields": {
+    "caja": 1,
+    "tipo_movimiento": "ingreso",
+    "categoria_movimiento": "otro",
+    "descripcion_movimiento": "adadas",
+    "importe_movimiento": 111111,
+    "fecha_movimiento": "2026-11-04T02:02:55.830Z"
+  }
+},
+{
+  "model": "usuarios.movimientocaja",
+  "pk": 6,
+  "fields": {
+    "caja": 1,
+    "tipo_movimiento": "ingreso",
+    "categoria_movimiento": "pago_proveedor",
+    "descripcion_movimiento": "pago en negro",
+    "importe_movimiento": 20000,
+    "fecha_movimiento": "2026-11-05T00:40:38.573Z"
+  }
+},
+{
+  "model": "pacientes.paciente",
+  "pk": "38136100",
+  "fields": {
+    "nombre_paciente": "Marcos Nicolas",
+    "apellido_paciente": "Gomez Ramunno",
+    "fecha_nacimiento": "1994-08-16",
+    "domicilio": "Corrientes 258",
+    "localidad": "Rosario",
+    "correo_electronico": "marcos@gmail.com",
+    "telefono": "3415896745",
+    "obra_social": "Esencial",
+    "sexo": "Masculino"
+  }
+},
+{
+  "model": "pacientes.paciente",
+  "pk": "38136101",
+  "fields": {
+    "nombre_paciente": "Marcos Nicolas",
+    "apellido_paciente": "Gomez Ramunno",
+    "fecha_nacimiento": "1994-08-16",
+    "domicilio": "Corrientes 258",
+    "localidad": "Rosario",
+    "correo_electronico": "marcos@gmail.com",
+    "telefono": "3415896745",
+    "obra_social": "Esencial",
+    "sexo": "Masculino"
+  }
+},
+{
+  "model": "pacientes.paciente",
+  "pk": "44321212",
+  "fields": {
+    "nombre_paciente": "Facundo",
+    "apellido_paciente": "Caceres",
+    "fecha_nacimiento": "2003-03-03",
+    "domicilio": "Moreno 2511 bis",
+    "localidad": "Ortondo",
+    "correo_electronico": "facundo.caceres@live.com",
+    "telefono": "3413698521",
+    "obra_social": "Esencial",
+    "sexo": "Masculino"
+  }
+},
+{
+  "model": "pacientes.paciente",
+  "pk": "564654685",
+  "fields": {
+    "nombre_paciente": "tomas",
+    "apellido_paciente": "gomez",
+    "fecha_nacimiento": "2000-02-03",
+    "domicilio": "fasfdas",
+    "localidad": "dasdasd",
+    "correo_electronico": "dasdasdsadasd@sadad.com",
+    "telefono": "dasdasdasdasda",
+    "obra_social": "dasdsad",
+    "sexo": "Masculino"
+  }
+},
+{
+  "model": "pacientes.historiaclinica",
+  "pk": 1,
+  "fields": {
+    "paciente": "38136100"
+  }
+},
+{
+  "model": "pacientes.historiaclinica",
+  "pk": 2,
+  "fields": {
+    "paciente": "38136101"
+  }
+},
+{
+  "model": "pacientes.historiaclinica",
+  "pk": 3,
+  "fields": {
+    "paciente": "44321212"
+  }
+},
+{
+  "model": "pacientes.historiaclinica",
+  "pk": 4,
+  "fields": {
+    "paciente": "564654685"
+  }
+},
+{
+  "model": "pacientes.turno",
+  "pk": 1,
+  "fields": {
+    "plan": 1,
+    "indicacion_medica": null,
+    "paciente": "38136100",
+    "tratamiento": 7,
+    "estado": "cancelado",
+    "fecha_asistencia": "2026-09-25T13:10:00Z",
+    "nota": ""
+  }
+},
+{
+  "model": "pacientes.turno",
+  "pk": 2,
+  "fields": {
+    "plan": null,
+    "indicacion_medica": null,
+    "paciente": "38136100",
+    "tratamiento": 1,
+    "estado": "cancelado",
+    "fecha_asistencia": "2026-09-24T19:11:00Z",
+    "nota": ""
+  }
+},
+{
+  "model": "pacientes.turno",
+  "pk": 3,
+  "fields": {
+    "plan": 1,
+    "indicacion_medica": null,
+    "paciente": "38136100",
+    "tratamiento": 7,
+    "estado": "finalizado",
+    "fecha_asistencia": "2026-09-24T17:22:00Z",
+    "nota": ""
+  }
+},
+{
+  "model": "pacientes.turno",
+  "pk": 4,
+  "fields": {
+    "plan": 1,
+    "indicacion_medica": null,
+    "paciente": "38136100",
+    "tratamiento": 7,
+    "estado": "cancelado",
+    "fecha_asistencia": "2026-09-24T13:39:00Z",
+    "nota": ""
+  }
+},
+{
+  "model": "pacientes.turno",
+  "pk": 5,
+  "fields": {
+    "plan": null,
+    "indicacion_medica": 1,
+    "paciente": "38136100",
+    "tratamiento": 8,
+    "estado": "cancelado",
+    "fecha_asistencia": "2026-10-08T12:30:00Z",
+    "nota": ""
+  }
+},
+{
+  "model": "pacientes.turno",
+  "pk": 6,
+  "fields": {
+    "plan": null,
+    "indicacion_medica": 1,
+    "paciente": "38136100",
+    "tratamiento": 8,
+    "estado": "asignado",
+    "fecha_asistencia": "2026-10-08T12:30:00Z",
+    "nota": ""
+  }
+},
+{
+  "model": "pacientes.turno",
+  "pk": 7,
+  "fields": {
+    "plan": null,
+    "indicacion_medica": null,
+    "paciente": "38136100",
+    "tratamiento": 2,
+    "estado": "asignado",
+    "fecha_asistencia": "2026-11-05T11:30:00Z",
+    "nota": ""
+  }
+},
+{
+  "model": "pacientes.turno",
+  "pk": 8,
+  "fields": {
+    "plan": null,
+    "indicacion_medica": 4,
+    "paciente": "44321212",
+    "tratamiento": 7,
+    "estado": "cancelado",
+    "fecha_asistencia": "2026-11-05T12:30:00Z",
+    "nota": ""
+  }
+},
+{
+  "model": "pacientes.turno",
+  "pk": 9,
+  "fields": {
+    "plan": null,
+    "indicacion_medica": 4,
+    "paciente": "44321212",
+    "tratamiento": 7,
+    "estado": "cancelado",
+    "fecha_asistencia": "2026-11-05T14:00:00Z",
+    "nota": ""
+  }
+},
+{
+  "model": "pacientes.turno",
+  "pk": 10,
+  "fields": {
+    "plan": null,
+    "indicacion_medica": null,
+    "paciente": "44321212",
+    "tratamiento": 4,
+    "estado": "cancelado",
+    "fecha_asistencia": "2026-11-06T12:30:00Z",
+    "nota": ""
+  }
+},
+{
+  "model": "pacientes.turno",
+  "pk": 11,
+  "fields": {
+    "plan": 3,
+    "indicacion_medica": 5,
+    "paciente": "44321212",
+    "tratamiento": 7,
+    "estado": "finalizado",
+    "fecha_asistencia": "2026-11-05T15:00:00Z",
+    "nota": ""
+  }
+},
+{
+  "model": "pacientes.turno",
+  "pk": 12,
+  "fields": {
+    "plan": 3,
+    "indicacion_medica": 5,
+    "paciente": "44321212",
+    "tratamiento": 7,
+    "estado": "finalizado",
+    "fecha_asistencia": "2026-11-05T13:00:00Z",
+    "nota": ""
+  }
+},
+{
+  "model": "pacientes.turno",
+  "pk": 13,
+  "fields": {
+    "plan": 3,
+    "indicacion_medica": 5,
+    "paciente": "44321212",
+    "tratamiento": 7,
+    "estado": "finalizado",
+    "fecha_asistencia": "2026-11-07T14:15:00Z",
+    "nota": ""
+  }
+},
+{
+  "model": "pacientes.turno",
+  "pk": 14,
+  "fields": {
+    "plan": null,
+    "indicacion_medica": 8,
+    "paciente": "564654685",
+    "tratamiento": 7,
+    "estado": "cancelado",
+    "fecha_asistencia": "2026-11-06T16:00:00Z",
+    "nota": ""
+  }
+},
+{
+  "model": "pacientes.notaagenda",
+  "pk": 4,
+  "fields": {
+    "fecha": "2026-10-07",
+    "texto": "lalola",
+    "usuario": [
+      "Recepcionista_Ailen"
+    ],
+    "actualizado_en": "2026-10-07T21:47:28.914Z"
+  }
+},
+{
+  "model": "pacientes.evolucion",
+  "pk": 1,
+  "fields": {
+    "historia_clinica": 1,
+    "turno": null,
+    "profesional": null,
+    "tratamiento_indicado": 8,
+    "usuario": [
+      "Dr_Garcia_Pedro"
+    ],
+    "tipo": "prp",
+    "fecha_evolucion": "2026-10-07",
+    "numero_sesion": null,
+    "resumen": "",
+    "descripcion": "Pte.:\nsdasds\n\nAntecedentes:\n\n\nExamen físico:\n\n\nSe le indica:\n",
+    "archivo": "",
+    "created_at": "2026-10-07T21:55:53.042Z"
+  }
+},
+{
+  "model": "pacientes.evolucion",
+  "pk": 2,
+  "fields": {
+    "historia_clinica": 1,
+    "turno": null,
+    "profesional": null,
+    "tratamiento_indicado": null,
+    "usuario": [
+      "Dr_Garcia_Pedro"
+    ],
+    "tipo": "control_mtc",
+    "fecha_evolucion": "2026-11-03",
+    "numero_sesion": null,
+    "resumen": "",
+    "descripcion": "Paciente refiere:\n..\n\nAntecedentes:\n\n\nExamen físico:\n\n\nSe le indica:\n",
+    "archivo": "",
+    "created_at": "2026-11-04T01:44:32.443Z"
+  }
+},
+{
+  "model": "pacientes.evolucion",
+  "pk": 3,
+  "fields": {
+    "historia_clinica": 1,
+    "turno": null,
+    "profesional": null,
+    "tratamiento_indicado": 6,
+    "usuario": [
+      "Dr_Garcia_Pedro"
+    ],
+    "tipo": "control_mtc",
+    "fecha_evolucion": "2026-11-04",
+    "numero_sesion": null,
+    "resumen": "",
+    "descripcion": "Paciente refiere:\nadDa\n\nAntecedentes:\nadasdas\n\nExamen físico:\nadsdas\n\nSe le indica:\ndsda",
+    "archivo": "",
+    "created_at": "2026-11-05T00:58:09.545Z"
+  }
+},
+{
+  "model": "pacientes.evolucion",
+  "pk": 4,
+  "fields": {
+    "historia_clinica": 3,
+    "turno": null,
+    "profesional": null,
+    "tratamiento_indicado": 7,
+    "usuario": [
+      "Dr_Garcia_Pedro"
+    ],
+    "tipo": "primera_consulta",
+    "fecha_evolucion": "2026-11-04",
+    "numero_sesion": null,
+    "resumen": "",
+    "descripcion": "Paciente refiere:\nfaaasdsadas\n\nAntecedentes:\ndasdasdasd\n\nExamen físico:\nasdasdasddas\n\nSe le indica:\ndasdasdasdsd",
+    "archivo": "",
+    "created_at": "2026-11-05T01:01:59.624Z"
+  }
+},
+{
+  "model": "pacientes.evolucion",
+  "pk": 5,
+  "fields": {
+    "historia_clinica": 3,
+    "turno": null,
+    "profesional": null,
+    "tratamiento_indicado": 7,
+    "usuario": [
+      "Dr_Garcia_Pedro"
+    ],
+    "tipo": "primera_consulta",
+    "fecha_evolucion": "2026-11-04",
+    "numero_sesion": null,
+    "resumen": "",
+    "descripcion": "Paciente refiere:\ndsadsada\n\nAntecedentes:\ndad\n\nExamen físico:\nsadasdasddasd\n\nSe le indica:\nsdsadasdas",
+    "archivo": "",
+    "created_at": "2026-11-05T01:13:05.287Z"
+  }
+},
+{
+  "model": "pacientes.evolucion",
+  "pk": 6,
+  "fields": {
+    "historia_clinica": 1,
+    "turno": null,
+    "profesional": null,
+    "tratamiento_indicado": 7,
+    "usuario": [
+      "Dr_Garcia_Pedro"
+    ],
+    "tipo": "primera_consulta",
+    "fecha_evolucion": "2026-11-04",
+    "numero_sesion": null,
+    "resumen": "",
+    "descripcion": "Paciente refiere:\ndasdad\n\nAntecedentes:\n\n\nExamen físico:\n\n\nSe le indica:\n",
+    "archivo": "",
+    "created_at": "2026-11-05T01:34:15.179Z"
+  }
+},
+{
+  "model": "pacientes.evolucion",
+  "pk": 7,
+  "fields": {
+    "historia_clinica": 2,
+    "turno": null,
+    "profesional": null,
+    "tratamiento_indicado": 7,
+    "usuario": [
+      "Dr_Garcia_Pedro"
+    ],
+    "tipo": "primera_consulta",
+    "fecha_evolucion": "2026-11-04",
+    "numero_sesion": null,
+    "resumen": "",
+    "descripcion": "Paciente refiere:\nasdsadasd\n\nAntecedentes:\nasdasdas\n\nExamen físico:\ndasdasdasdas\n\nSe le indica:\ndasdasdas",
+    "archivo": "",
+    "created_at": "2026-11-05T01:34:40.796Z"
+  }
+},
+{
+  "model": "pacientes.evolucion",
+  "pk": 8,
+  "fields": {
+    "historia_clinica": 4,
+    "turno": null,
+    "profesional": null,
+    "tratamiento_indicado": 7,
+    "usuario": [
+      "Dr_Garcia_Pedro"
+    ],
+    "tipo": "ntf",
+    "fecha_evolucion": "2026-11-04",
+    "numero_sesion": null,
+    "resumen": "",
+    "descripcion": "Paciente refiere:\nsadsadasdas\n\nAntecedentes:\ndsadasdasds\n\nExamen físico:\ndasdsadsadasdas\n\nSe le indica:\ndasdas",
+    "archivo": "",
+    "created_at": "2026-11-05T01:38:46.106Z"
+  }
+},
+{
+  "model": "pacientes.evolucion",
+  "pk": 9,
+  "fields": {
+    "historia_clinica": 1,
+    "turno": null,
+    "profesional": null,
+    "tratamiento_indicado": 7,
+    "usuario": [
+      "Dr_Garcia_Pedro"
+    ],
+    "tipo": "ntf",
+    "fecha_evolucion": "2026-11-04",
+    "numero_sesion": null,
+    "resumen": "",
+    "descripcion": "Paciente refiere:\ndsadas\n\nAntecedentes:\ndasdas\n\nExamen físico:\nasdasda\n\nSe le indica:\nsdasdasd",
+    "archivo": "",
+    "created_at": "2026-11-05T01:39:22.170Z"
+  }
+},
+{
+  "model": "tratamientos.tratamiento",
+  "pk": 1,
+  "fields": {
+    "nombre_tratamiento": "Primera consulta",
+    "duracion_tratamiento": "00:30:00",
+    "sesion_tratamiento": 1,
+    "precio_total": 50000,
+    "requiere_plan": false,
+    "agenda_categoria": "consultorio"
+  }
+},
+{
+  "model": "tratamientos.tratamiento",
+  "pk": 2,
+  "fields": {
+    "nombre_tratamiento": "Nueva evaluación",
+    "duracion_tratamiento": "00:30:00",
+    "sesion_tratamiento": 1,
+    "precio_total": 50000,
+    "requiere_plan": false,
+    "agenda_categoria": "consultorio"
+  }
+},
+{
+  "model": "tratamientos.tratamiento",
+  "pk": 3,
+  "fields": {
+    "nombre_tratamiento": "Control de Nutrifol",
+    "duracion_tratamiento": "00:30:00",
+    "sesion_tratamiento": 1,
+    "precio_total": 50000,
+    "requiere_plan": false,
+    "agenda_categoria": "consultorio"
+  }
+},
+{
+  "model": "tratamientos.tratamiento",
+  "pk": 4,
+  "fields": {
+    "nombre_tratamiento": "Control de PRP",
+    "duracion_tratamiento": "00:30:00",
+    "sesion_tratamiento": 1,
+    "precio_total": 50000,
+    "requiere_plan": false,
+    "agenda_categoria": "consultorio"
+  }
+},
+{
+  "model": "tratamientos.tratamiento",
+  "pk": 5,
+  "fields": {
+    "nombre_tratamiento": "Control de medicación",
+    "duracion_tratamiento": "00:30:00",
+    "sesion_tratamiento": 1,
+    "precio_total": 50000,
+    "requiere_plan": false,
+    "agenda_categoria": "consultorio"
+  }
+},
+{
+  "model": "tratamientos.tratamiento",
+  "pk": 6,
+  "fields": {
+    "nombre_tratamiento": "MTC",
+    "duracion_tratamiento": "06:00:00",
+    "sesion_tratamiento": 1,
+    "precio_total": 4500000,
+    "requiere_plan": true,
+    "agenda_categoria": "mtc"
+  }
+},
+{
+  "model": "tratamientos.tratamiento",
+  "pk": 7,
+  "fields": {
+    "nombre_tratamiento": "NTF",
+    "duracion_tratamiento": "00:15:00",
+    "sesion_tratamiento": 12,
+    "precio_total": 822800,
+    "requiere_plan": true,
+    "agenda_categoria": "ntf"
+  }
+},
+{
+  "model": "tratamientos.tratamiento",
+  "pk": 8,
+  "fields": {
+    "nombre_tratamiento": "PRP",
+    "duracion_tratamiento": "00:30:00",
+    "sesion_tratamiento": 3,
+    "precio_total": 822800,
+    "requiere_plan": true,
+    "agenda_categoria": "prp"
+  }
+},
+{
+  "model": "tratamientos.planpago",
+  "pk": 1,
+  "fields": {
+    "dni": "38136100",
+    "tratamiento": 7,
+    "valor_sesion": 68567,
+    "fecha_inicio_tratamiento": "2026-09-23",
+    "metodo_pago": "efectivo",
+    "sesiones_total": 12,
+    "sesiones_consumidas": 1,
+    "estado": "activo"
+  }
+},
+{
+  "model": "tratamientos.planpago",
+  "pk": 2,
+  "fields": {
+    "dni": "38136100",
+    "tratamiento": 6,
+    "valor_sesion": 4500000,
+    "fecha_inicio_tratamiento": "2026-09-24",
+    "metodo_pago": "mercadopago",
+    "sesiones_total": 1,
+    "sesiones_consumidas": 0,
+    "estado": "activo"
+  }
+},
+{
+  "model": "tratamientos.planpago",
+  "pk": 3,
+  "fields": {
+    "dni": "44321212",
+    "tratamiento": 7,
+    "valor_sesion": 68567,
+    "fecha_inicio_tratamiento": "2026-11-04",
+    "metodo_pago": "efectivo",
+    "sesiones_total": 12,
+    "sesiones_consumidas": 3,
+    "estado": "activo"
+  }
+},
+{
+  "model": "productos.producto",
+  "pk": 22,
+  "fields": {
+    "nombre_producto": "shampoo",
+    "cantidad_producto": 30,
+    "categoria_producto": "higiene",
+    "precio_producto": 1000,
+    "stock_minimo": 5
+  }
+},
+{
+  "model": "productos.producto",
+  "pk": 226,
+  "fields": {
+    "nombre_producto": "moto",
+    "cantidad_producto": 2,
+    "categoria_producto": "movilidad",
+    "precio_producto": 1,
+    "stock_minimo": 5
+  }
+}
+]

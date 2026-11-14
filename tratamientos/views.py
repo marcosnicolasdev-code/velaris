@@ -5,7 +5,7 @@ from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.utils import timezone
 from pacientes.models import Paciente, Turno
-from .models import Tratamiento, PlanPago
+from .models import Tratamiento, PlanPago, Sesion
 from .forms import TratamientoForm, AsignarPlanForm, SesionForm, PlanPagoForm
 import unicodedata
 
@@ -45,7 +45,7 @@ def tratamiento_borrar(request,id):
 # --------PLAN PAGO -------------
 @login_required 
 def planpago_lista (request): 
-    planes = PlanPago.objects.select_related('nombre_tratamiento').all()
+    planes = PlanPago.objects.select_related('tratamiento', 'dni').all()
     return render (request,"tratamientos/planpago_lista.html", {"planes": planes})
 @login_required
 def planpago_crear(request, dni=None):

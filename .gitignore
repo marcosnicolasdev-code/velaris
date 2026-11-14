@@ -4,6 +4,6 @@ __pycache__/
 db.sqlite3
 .env
 .vscode/
-media/datos.json
+datos.json
 media/
 staticfiles/

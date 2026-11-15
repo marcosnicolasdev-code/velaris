@@ -13,6 +13,7 @@
           </h1>
           <p class="patient-form-subtitle">
             Registrá los datos del paciente para crear un nuevo registro.
+            <span class="d-block mt-2"><span class="text-danger" aria-hidden="true">*</span> Campos obligatorios.</span>
           </p>
 
           <form method="post" novalidate>
@@ -31,7 +32,7 @@
                     <circle cx="12" cy="7" r="3.5"></circle>
                     <path d="M4.5 21v-2a7.5 7.5 0 0 1 15 0v2"></path>
                   </svg>
-                  <span>{{ form.nombre_paciente.label }}</span>
+                  <span>{{ form.nombre_paciente.label }}{% if form.nombre_paciente.field.required %} <span class="text-danger" aria-hidden="true">*</span>{% endif %}</span>
                 </label>
                 {{ form.nombre_paciente }}
                 {{ form.nombre_paciente.errors }}
@@ -42,7 +43,7 @@
                     <circle cx="12" cy="7" r="3.5"></circle>
                     <path d="M4.5 21v-2a7.5 7.5 0 0 1 15 0v2"></path>
                   </svg>
-                  <span>{{ form.apellido_paciente.label }}</span>
+                  <span>{{ form.apellido_paciente.label }}{% if form.apellido_paciente.field.required %} <span class="text-danger" aria-hidden="true">*</span>{% endif %}</span>
                 </label>
                 {{ form.apellido_paciente }}
                 {{ form.apellido_paciente.errors }}
@@ -57,13 +58,15 @@
                     <path d="M8 7.5h8M8 11.5h8M8 15.5h5"></path>
                     <circle cx="16.5" cy="16.5" r="1.8"></circle>
                   </svg>
-                  <span>{{ form.dni.label }}</span>
+                  <span>{{ form.dni.label }}{% if form.dni.field.required %} <span class="text-danger" aria-hidden="true">*</span>{% endif %}</span>
                 </label>
                 {{ form.dni }}
                 {{ form.dni.errors }}
               </div>
               <div class="col-12 col-md-6 patient-form-field">
-                {{ form.fecha_nacimiento.label_tag }}
+                <label for="{{ form.fecha_nacimiento.id_for_label }}">
+                  {{ form.fecha_nacimiento.label }}{% if form.fecha_nacimiento.field.required %} <span class="text-danger" aria-hidden="true">*</span>{% endif %}
+                </label>
                 {{ form.fecha_nacimiento }}
                 <div id="edad-calculada" class="form-text"></div>
                 {{ form.fecha_nacimiento.errors }}
@@ -101,7 +104,7 @@
                   <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                     <path d="M7 4.5h1.5l1.5 4.5-2.2 1.8A13.2 13.2 0 0 0 15.4 19l1.8-2.2 4.5 1.5V18A2.5 2.5 0 0 1 19.2 20.5H17A17 17 0 0 1 7 10.8V4.5Z"></path>
                   </svg>
-                  <span>{{ form.telefono.label }}</span>
+                  <span>{{ form.telefono.label }}{% if form.telefono.field.required %} <span class="text-danger" aria-hidden="true">*</span>{% endif %}</span>
                 </label>
                 {{ form.telefono }}
                 {{ form.telefono.errors }}
@@ -112,7 +115,7 @@
                     <rect x="3.5" y="5" width="17" height="15.5" rx="2"></rect>
                     <path d="M4.5 7.5 12 13l7.5-5.5"></path>
                   </svg>
-                  <span>{{ form.correo_electronico.label }}</span>
+                  <span>{{ form.correo_electronico.label }}{% if form.correo_electronico.field.required %} <span class="text-danger" aria-hidden="true">*</span>{% endif %}</span>
                 </label>
                 {{ form.correo_electronico }}
                 {{ form.correo_electronico.errors }}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block titulo %}Paciente borrado — Velaris{% endblock %}
+
+{% block contenido %}
+  <div class="alert alert-success" role="status">
+    El paciente se borró correctamente.
+    <a href="{% url 'paciente_lista' %}" class="alert-link">Ir a la lista de pacientes</a>
+  </div>
+
+  <div
+    class="modal fade"
+    id="paciente-borrado-modal"
+    tabindex="-1"
+    aria-labelledby="paciente-borrado-titulo"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="paciente-borrado-titulo">Paciente borrado</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          El paciente se borró correctamente.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+            Ir a la lista de pacientes
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const modalElement = document.getElementById("paciente-borrado-modal");
+      modalElement.addEventListener("hidden.bs.modal", function () {
+        window.location.replace("{% url 'paciente_lista' %}");
+      }, { once: true });
+      bootstrap.Modal.getOrCreateInstance(modalElement).show();
+    });
+  </script>
+{% endblock %}

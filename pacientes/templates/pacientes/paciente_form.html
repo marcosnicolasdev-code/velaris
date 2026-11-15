@@ -12,7 +12,11 @@
             {% if form.instance.pk %}Editar Paciente{% else %}Nuevo Paciente{% endif %}
           </h1>
           <p class="patient-form-subtitle">
-            Registrá los datos del paciente para crear un nuevo registro.
+            {% if form.instance.pk %}
+              Actualizá los datos del paciente en su ficha existente.
+            {% else %}
+              Registrá los datos del paciente para crear un nuevo registro.
+            {% endif %}
             <span class="d-block mt-2"><span class="text-danger" aria-hidden="true">*</span> Campos obligatorios.</span>
           </p>
 
@@ -61,6 +65,7 @@
                   <span>{{ form.dni.label }}{% if form.dni.field.required %} <span class="text-danger" aria-hidden="true">*</span>{% endif %}</span>
                 </label>
                 {{ form.dni }}
+                {% if form.dni.help_text %}<div class="form-text">{{ form.dni.help_text }}</div>{% endif %}
                 {{ form.dni.errors }}
               </div>
               <div class="col-12 col-md-6 patient-form-field">
@@ -160,9 +165,19 @@
                 Guardar Paciente
               </button>
               {% if form.instance.pk %}
-                <a href="{% url 'paciente_borrar' form.instance.dni %}" class="btn btn-danger">
+                <button
+                  type="submit"
+                  class="btn btn-danger"
+                  formaction="{% url 'paciente_borrar' form.instance.dni %}"
+                  formmethod="post"
+                  data-confirm-message="¿Querés borrar permanentemente esta ficha?"
+                  data-confirm-patient-name="{{ form.instance.apellido_paciente }}, {{ form.instance.nombre_paciente }}"
+                  data-confirm-patient-dni="DNI: {{ form.instance.dni }}"
+                  data-confirm-suffix="Esta acción no se puede deshacer."
+                  data-confirm-accept="Sí, borrar paciente"
+                >
                   Borrar paciente
-                </a>
+                </button>
               {% endif %}
             </div>
           </form>

@@ -36,6 +36,121 @@ class PatientSearchTests(TestCase):
         )
 
 
+class PatientEditTests(TestCase):
+    def setUp(self):
+        usuario = User.objects.create_user(username="editar_paciente", password="secret123")
+        self.client.force_login(usuario)
+        self.paciente = Paciente.objects.create(
+            dni="12345678",
+            nombre_paciente="Ana",
+            apellido_paciente="García",
+            fecha_nacimiento="1990-05-10",
+            correo_electronico="ana@example.com",
+            telefono="3415551234",
+        )
+
+    def test_editar_no_crea_otro_paciente_si_el_post_cambia_el_dni(self):
+        respuesta = self.client.post(
+            reverse("paciente_editar", kwargs={"dni": self.paciente.dni}),
+            {
+                "dni": "87654321",
+                "nombre_paciente": "Ana María",
+                "apellido_paciente": "García",
+                "fecha_nacimiento": "1990-05-10",
+                "correo_electronico": "ana@example.com",
+                "telefono": "3415551234",
+            },
+        )
+
+        self.assertRedirects(
+            respuesta,
+            reverse("paciente_detalle", kwargs={"dni": self.paciente.dni}),
+        )
+        self.assertEqual(Paciente.objects.count(), 1)
+        self.paciente.refresh_from_db()
+        self.assertEqual(self.paciente.dni, "12345678")
+        self.assertEqual(self.paciente.nombre_paciente, "Ana María")
+
+
+class PatientDeleteTests(TestCase):
+    def setUp(self):
+        usuario = User.objects.create_user(username="borrar_paciente", password="secret123")
+        self.client.force_login(usuario)
+        self.paciente = Paciente.objects.create(
+            dni="12345678",
+            nombre_paciente="Ana",
+            apellido_paciente="García",
+            fecha_nacimiento="1990-05-10",
+            correo_electronico="ana@example.com",
+            telefono="3415551234",
+        )
+
+    def test_confirma_borrado_y_redirige_a_lista_de_pacientes(self):
+        confirmacion = self.client.get(
+            reverse("paciente_borrar", kwargs={"dni": self.paciente.dni})
+        )
+
+        self.assertRedirects(
+            confirmacion,
+            reverse("paciente_editar", kwargs={"dni": self.paciente.dni}),
+        )
+        edicion = self.client.get(confirmacion.url)
+        self.assertEqual(edicion.status_code, 200)
+        self.assertContains(edicion, "data-confirm-message")
+        self.assertContains(
+            edicion,
+            'data-confirm-patient-name="García, Ana"',
+        )
+        self.assertContains(
+            edicion,
+            'data-confirm-patient-dni="DNI: 12345678"',
+        )
+        self.assertContains(edicion, "data-confirm-accept=\"Sí, borrar paciente\"")
+
+        respuesta = self.client.post(
+            reverse("paciente_borrar", kwargs={"dni": self.paciente.dni})
+        )
+
+        self.assertRedirects(respuesta, reverse("paciente_borrado_exitoso"))
+        self.assertFalse(Paciente.objects.filter(dni=self.paciente.dni).exists())
+        confirmacion_exitosa = self.client.get(respuesta.url)
+        self.assertContains(confirmacion_exitosa, "El paciente se borró correctamente.")
+        self.assertContains(confirmacion_exitosa, "hidden.bs.modal")
+        self.assertContains(
+            confirmacion_exitosa,
+            f'window.location.replace("{reverse("paciente_lista")}")',
+        )
+
+    def test_borra_historia_clinica_vacia(self):
+        historia = HistoriaClinica.objects.create(paciente=self.paciente)
+
+        respuesta = self.client.post(
+            reverse("paciente_borrar", kwargs={"dni": self.paciente.dni})
+        )
+
+        self.assertRedirects(respuesta, reverse("paciente_borrado_exitoso"))
+        self.assertFalse(Paciente.objects.filter(dni=self.paciente.dni).exists())
+        self.assertFalse(HistoriaClinica.objects.filter(pk=historia.pk).exists())
+
+    def test_informa_si_la_historia_clinica_tiene_datos(self):
+        historia = HistoriaClinica.objects.create(paciente=self.paciente)
+        evolucion = Evolucion.objects.create(
+            historia_clinica=historia,
+            fecha_evolucion="2026-01-01",
+            descripcion="Control médico",
+        )
+
+        respuesta = self.client.post(
+            reverse("paciente_borrar", kwargs={"dni": self.paciente.dni}),
+            follow=True,
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "No se puede borrar este paciente")
+        self.assertTrue(Paciente.objects.filter(dni=self.paciente.dni).exists())
+        self.assertTrue(Evolucion.objects.filter(pk=evolucion.pk).exists())
+
+
 class EvolucionModelTests(TestCase):
     def test_crea_evolucion_con_historia_clinica(self):
         usuario = User.objects.create_user(username="medico1", password="secret123")

@@ -139,7 +139,7 @@
         <div class="modal-body" id="confirmacion-sistema-mensaje"></div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, volver</button>
-          <button type="button" class="btn btn-danger" id="confirmacion-sistema-aceptar">Sí, cancelar turno</button>
+          <button type="button" class="btn btn-danger" id="confirmacion-sistema-aceptar">Confirmar</button>
         </div>
       </div>
     </div>
@@ -169,7 +169,18 @@
         event.preventDefault();
         formToSubmit = button.form;
         submitter = button;
-        message.textContent = button.dataset.confirmMessage;
+        const patientDetails = [
+          button.dataset.confirmPatientName,
+          button.dataset.confirmPatientDni
+        ].filter(Boolean);
+        message.textContent = patientDetails.length
+          ? [
+              button.dataset.confirmMessage,
+              ...patientDetails,
+              button.dataset.confirmSuffix
+            ].filter(Boolean).join("\n")
+          : button.dataset.confirmMessage;
+        message.style.whiteSpace = patientDetails.length ? "pre-line" : "";
         acceptButton.textContent = button.dataset.confirmAccept || "Confirmar";
         modal.show();
       });

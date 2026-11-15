@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
+from django.db.models.deletion import ProtectedError
 from django.db.models import Q
 from django.utils import timezone
 from django.http import JsonResponse
@@ -13,7 +14,7 @@ from django.urls import reverse
 import unicodedata
 import re
 
-from .models import Paciente, Evolucion, Turno
+from .models import HistoriaClinica, Paciente, Evolucion, Turno
 from .forms import (
     PacienteForm,
     TurnoForm,
@@ -380,9 +381,39 @@ def paciente_editar(request, dni):
 def paciente_borrar(request, dni):
     paciente = get_object_or_404(Paciente, dni=dni)
     if request.method == "POST":
-        paciente.delete()
-        return redirect("paciente_lista")
-    return render(request, "pacientes/paciente_confirmar.html", {"paciente": paciente})
+        historia = HistoriaClinica.objects.filter(paciente=paciente).first()
+        tiene_datos_clinicos = historia and (
+            historia.evoluciones.exists() or historia.evaluaciones.exists()
+        )
+        tiene_turnos = Turno.objects.filter(paciente=paciente).exists()
+        tiene_planes = PlanPago.objects.filter(dni=paciente).exists()
+        if tiene_datos_clinicos or tiene_turnos or tiene_planes:
+            messages.error(
+                request,
+                "No se puede borrar este paciente porque tiene datos en su historia "
+                "clínica, turnos o planes de tratamiento asociados.",
+            )
+            return redirect("paciente_detalle", dni=paciente.dni)
+
+        try:
+            with transaction.atomic():
+                if historia:
+                    historia.delete()
+                paciente.delete()
+        except ProtectedError:
+            messages.error(
+                request,
+                "No se puede borrar este paciente porque tiene registros asociados.",
+            )
+            return redirect("paciente_detalle", dni=paciente.dni)
+        return redirect("paciente_borrado_exitoso")
+    return redirect("paciente_editar", dni=paciente.dni)
+
+
+@login_required
+def paciente_borrado_exitoso(request):
+    return render(request, "pacientes/paciente_borrado_exitoso.html")
+
 
 #vista de “crear evolución” del paciente
 @login_required

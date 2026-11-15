@@ -81,6 +81,12 @@ class PacienteForm(forms.ModelForm):
             campo.error_messages["required"] = "Este campo es obligatorio."
             campo.error_messages["invalid"] = "Ingresá un valor válido."
 
+        if self.instance.pk:
+            self.fields["dni"].disabled = True
+            self.fields["dni"].help_text = (
+                "El DNI identifica la ficha y no se puede cambiar desde la edición."
+            )
+
         self.fields["dni"].error_messages["unique"] = (
             "Ya existe un paciente registrado con este DNI."
         )

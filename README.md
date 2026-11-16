@@ -1,6 +1,6 @@
 # Velaris — Sistema de gestión para clínica capilar
 
-Sistema web de gestión para **Hair Recovery**, una clínica de estética capilar de Rosario con 30 años en el rubro. Velaris reúne en una sola plataforma lo que la clínica manejaba por separado: pacientes, historia clínica, agenda de turnos, tratamientos, caja y stock.
+Sistema web de gestión para una clínica de estética capilar de Rosario. Velaris reúne en una sola plataforma lo que la clínica manejaba por separado: pacientes, historia clínica, agenda de turnos, tratamientos, caja y stock.
 
 > **Proyecto académico** de la Tecnicatura Superior en Desarrollo de Software (Terciario Urquiza, Rosario), desarrollado en equipo para **Práctica Profesionalizante I** (2026) y con continuidad en **Práctica Profesionalizante II** (2027). La organización es real; todos los datos cargados son ficticios.
 

@@ -7,14 +7,14 @@ def cargar_tratamientos(apps, schema_editor):
 
     tratamientos = [
         # nombre, sesiones, duracion (minutos), precio_total, requiere_plan
-        ("Primera consulta",        1, 30,   30000,   False),
-        ("Nueva evaluación",        1, 30,   30000,   False),
-        ("Control de Nutrifol",     1, 15,   30000,   False),
-        ("Control de PRP",          1, 15,   30000,   False),
-        ("Control de medicación",   1, 15,   30000,   False),
-        ("MTC",                     1, 60,   3000000, True),
-        ("NTF",                     12, 15,  600000,  True),
-        ("PRP",                     3, 30,   600000,  True),
+        ("Primera consulta",        1, 30,   50000,   False),
+        ("Nueva evaluación",        1, 30,   50000,   False),
+        ("Control de Nutrifol",     1, 15,   50000,   False),
+        ("Control de PRP",          1, 15,   50000,   False),
+        ("Control de medicación",   1, 15,   50000,   False),
+        ("MTC",                     1, 60,   4500000, True),
+        ("NTF",                     12, 15,  822800,  True),
+        ("PRP",                     3, 30,   822800,  True),
     ]
 
     for nombre, sesiones, minutos, precio, requiere in tratamientos:
